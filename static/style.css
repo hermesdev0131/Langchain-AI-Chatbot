@@ -65,7 +65,7 @@
   
       .feature i {
         font-size: 2rem;
-        color: #6a11cb;
+        color: #FFDB00;
         margin-bottom: 10px;
       }
   
@@ -97,7 +97,7 @@
       .chatbot__button {
         width: 70px;
         height: 70px;
-        background-color: #f39c12;
+        background-color: #FFDB00;
         color: white;
         border: none;
         border-radius: 50%;
@@ -112,7 +112,7 @@
   
       .chatbot__button:hover {
         transform: scale(1.1);
-        background-color: #e67e22;
+        background-color: #27251F;
       }
 
       @keyframes pulseShadow {
