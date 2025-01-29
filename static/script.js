@@ -21,12 +21,12 @@ function toggleChat() {
 
         // Automatically focus on the input box after transition
         setTimeout(() => {
-        document.getElementById('chatInput').focus();
+            document.getElementById('chatInput').focus();
         }, 300); // Match this timeout with the CSS transition duration
     }
-    }
+}
 
-    // Handle fade-out transition end
+// Handle fade-out transition end
 function handleFadeOut(event) {
     const popup = document.getElementById('chatPopup');
     if (event.propertyName === 'opacity') {
@@ -48,58 +48,14 @@ function toggleFullscreen() {
     }
 }
 
-    // Handle Enter Key Press
+// Handle Enter Key Press
 function handleEnterKey(event) {
     if (event.key === 'Enter') {
         sendMessage();
     }
 }
 
-// Add a message to the chat with label
-function addMessage(content, sender) {
-    const chatBody = document.getElementById('chatBody');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `chatbot__message chatbot__message--${sender}`;
-
-    // Create label
-    const labelDiv = document.createElement('div');
-    labelDiv.className = 'chatbot__label';
-    labelDiv.textContent = sender === 'user' ? 'You' : 'AI Assistant';
-
-    // Create text content
-    const textDiv = document.createElement('div');
-    textDiv.className = 'chatbot__text';
-    textDiv.textContent = content;
-
-    // Append label and text to message div
-    messageDiv.appendChild(labelDiv);
-    messageDiv.appendChild(textDiv);
-
-    // Append message to chat body
-    chatBody.appendChild(messageDiv);
-
-    // Scroll to the bottom
-    chatBody.scrollTop = chatBody.scrollHeight;
-
-    // Close chatbot when clicking outside of it with fade-out animation
-    document.addEventListener('click', function(event) {
-    const popup = document.getElementById('chatPopup');
-    const chatbotButton = document.querySelector('.chatbot__button');
-
-    // If popup is not visible, do nothing
-    if (!popup.classList.contains('show')) return;
-
-    // Check if the clicked element is inside the popup or the chatbot button
-    if (!popup.contains(event.target) && !chatbotButton.contains(event.target)) {
-        // Start fade-out animation
-        popup.classList.add('fade-out');
-
-        // Listen for transition end to hide the popup once
-        popup.addEventListener('transitionend', handleFadeOut, { once: true });
-    }
-    });
-}
-
+// Send a message to the server
 async function sendMessage() {
     const input = document.getElementById('chatInput');
     const message = input.value.trim();
@@ -115,28 +71,28 @@ async function sendMessage() {
     thinkingDiv.classList.remove('hidden');
   
     try {
-      const response = await fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userMessage: message }),
-      });
-      const data = await response.json();
+        const response = await fetch('/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userMessage: message }),
+        });
+        const data = await response.json();
   
-      // Hide "Thinking..."
-      thinkingDiv.classList.add('hidden');
-      if (data.response) {
-        // Show response with typewriter effect
-        typeWriterEffect(data.response, chatBody);
-      } else {
-        addMessage('Sorry, something went wrong.', 'bot');
-      }
+        // Hide "Thinking..."
+        thinkingDiv.classList.add('hidden');
+        if (data.response) {
+            // Show response with typewriter effect
+            typeWriterEffect(data.response, chatBody);
+        } else {
+            addMessage('Sorry, something went wrong.', 'bot');
+        }
     } catch (err) {
-      // Hide "Thinking..." and show error
-      thinkingDiv.classList.add('hidden');
-      addMessage('Error: ' + err.message, 'bot');
+        // Hide "Thinking..." and show error
+        thinkingDiv.classList.add('hidden');
+        addMessage('Error: ' + err.message, 'bot');
     }
 }
-  
+
 // Function to simulate typing animation
 function typeWriterEffect(text, chatBody) {
     const messageDiv = document.createElement('div');
@@ -154,15 +110,15 @@ function typeWriterEffect(text, chatBody) {
   
     let i = 0;
     function type() {
-      if (i < text.length) {
-        textDiv.textContent += text.charAt(i);
-        i++;
-        setTimeout(type, 50); // Adjust typing speed here
-      }
+        if (i < text.length) {
+            textDiv.textContent += text.charAt(i);
+            i++;
+            setTimeout(type, 50); // Adjust typing speed here
+        }
     }
     type();
 }
-  
+
 // Add user's or bot's message to the chat
 function addMessage(content, sender) {
     const chatBody = document.getElementById('chatBody');
@@ -182,3 +138,21 @@ function addMessage(content, sender) {
     chatBody.appendChild(messageDiv);
     chatBody.scrollTop = chatBody.scrollHeight;
 }
+
+// Attach the click event listener once when the script loads
+document.addEventListener('click', function(event) {
+    const popup = document.getElementById('chatPopup');
+    const chatbotButton = document.querySelector('.chatbot__button');
+
+    // If popup is not visible, do nothing
+    if (!popup.classList.contains('show')) return;
+
+    // Check if the clicked element is inside the popup or the chatbot button
+    if (!popup.contains(event.target) && !chatbotButton.contains(event.target)) {
+        // Start fade-out animation
+        popup.classList.add('fade-out');
+
+        // Listen for transition end to hide the popup once
+        popup.addEventListener('transitionend', handleFadeOut, { once: true });
+    }
+});
