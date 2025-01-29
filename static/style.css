@@ -1,121 +1,124 @@
-/* General Styles */
-body {
-  margin: 0;
-  font-family: 'Roboto', sans-serif;
-  background: linear-gradient(135deg, #FFDB00, #27251F);
-  color: white;
-}
+    /* General Styles */
+    body {
+        margin: 0;
+        font-family: 'Roboto', sans-serif;
+        background: linear-gradient(135deg, #FFDB00, #27251F);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh; /* Full viewport height */
+        margin: 0;
+      }
+  
+      h1, h2, h3 {
+        margin: 0;
+      }
 
-h1,
-h2,
-h3 {
-  margin: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-/* Hero Section */
-.hero {
-  text-align: center;
-  padding: 100px 20px 50px;
-  margin-top: 10px;
-}
-
-.hero h1 {
-  font-size: 3rem;
-  margin-bottom: 20px;
-}
-
-.hero p {
-  font-size: 1.2rem;
-  line-height: 1.8;
-  margin: 20px auto;
-  max-width: 700px;
-}
-
-/* Features Section */
-.features-section {
-  background-color: #fff;
-  color: #333;
-  padding: 70px 20px;
-  text-align: center;
-}
-
-.features-section h2 {
-  font-size: 2rem;
-  margin-bottom: 20px;
-}
-
-.features-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 40px;
-}
-
-.feature {
-  background-color: #f9f9f9;
-  border-radius: 10px;
-  padding: 20px;
-  max-width: 300px;
-  flex: 1 1 250px;
-}
-
-.feature i {
-  font-size: 2rem;
-  color: #FFDB00;
-  margin-bottom: 10px;
-}
-
-.feature h3 {
-  margin: 10px 0;
-}
-
-/* Footer */
-footer {
-  background: #1a1a1a;
-  color: #888;
-  text-align: center;
-  padding: 20px 0;
-  margin-top: 30px;
-}
-
-footer p {
-  margin: 0;
-}
-
-/* Chatbot Button and Popup */
-.chatbot {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 1000;
-}
-
-.chatbot__button {
-  width: 70px;
-  height: 70px;
-  background-color: #FFDB00;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 30px;
-  transition: transform 0.3s ease, background-color 0.3s ease;
-}
-
-.chatbot__button:hover {
-  transform: scale(1.1);
-  background-color: #27251F;
-}
+      main {
+        flex: 1; /* Push footer to the bottom */
+      }
+  
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+  
+      /* Hero Section */
+      .hero {
+        text-align: center;
+        padding: 100px 20px 50px;
+        margin-top: 10px;
+      }
+  
+      .hero h1 {
+        font-size: 3rem;
+        margin-bottom: 20px;
+      }
+  
+      .hero p {
+        font-size: 1.2rem;
+        line-height: 1.8;
+        margin: 20px auto;
+        max-width: 700px;
+      }
+  
+      /* Features Section */
+      .features-section {
+        background-color: #fff;
+        color: #333;
+        padding: 70px 20px;
+        text-align: center;
+      }
+  
+      .features-section h2 {
+        font-size: 2rem;
+        margin-bottom: 20px;
+      }
+  
+      .features-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 40px;
+      }
+  
+      .feature {
+        background-color: #f9f9f9;
+        border-radius: 10px;
+        padding: 20px;
+        max-width: 300px;
+        flex: 1 1 250px;
+      }
+  
+      .feature i {
+        font-size: 2rem;
+        color: #FFDB00;
+        margin-bottom: 10px;
+      }
+  
+      .feature h3 {
+        margin: 10px 0;
+      }
+  
+    /* Footer */
+    footer {
+        background: #1a1a1a;
+        color: #888;
+        text-align: center;
+        padding: 20px; /* Apply padding on all sides */
+        margin-top: 200px;
+        width: 100%; /* Ensure it spans the full width */
+    }
+  
+      /* Chatbot Button and Popup */
+      .chatbot {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+      }
+  
+      .chatbot__button {
+        width: 70px;
+        height: 70px;
+        background-color: #FFDB00;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        transition: transform 0.3s ease, background-color 0.3s ease;
+      }
+  
+      .chatbot__button:hover {
+        transform: scale(1.1);
+        background-color: #27251F;
+      }
 
 @keyframes pulseShadow {
   0% {
