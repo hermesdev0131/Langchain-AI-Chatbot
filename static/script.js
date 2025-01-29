@@ -55,38 +55,6 @@ function handleEnterKey(event) {
     }
 }
 
-// Send a message to the server
-async function sendMessage() {
-    const input = document.getElementById('chatInput');
-    const message = input.value.trim();
-    if (!message) return;
-
-    // Add user's message (on the left) with label
-    addMessage(message, 'user');
-
-    // Clear the input field
-    input.value = '';
-
-    // Send message to server
-    try {
-        const response = await fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userMessage: message })
-        });
-        const data = await response.json();
-
-        if (data.response) {
-        // Bot messages (on the right) with label
-        addMessage(data.response, 'bot');
-        } else {
-        addMessage('Sorry, something went wrong.', 'bot');
-        }
-    } catch (err) {
-        addMessage('Error: ' + err.message, 'bot');
-    }
-}
-
 // Add a message to the chat with label
 function addMessage(content, sender) {
     const chatBody = document.getElementById('chatBody');
@@ -132,14 +100,6 @@ function addMessage(content, sender) {
     });
 }
 
-async function sendMessage() {
-    const input = document.getElementById('chatInput');
-    const message = input.value.trim();
-    const chatBody = document.getElementById('chatBody');
-    const thinkingDiv = document.getElementById('chatbot-thinking');}
-
-
-    // Function to send a message with "Thinking..." and typewriter effect
 async function sendMessage() {
     const input = document.getElementById('chatInput');
     const message = input.value.trim();
