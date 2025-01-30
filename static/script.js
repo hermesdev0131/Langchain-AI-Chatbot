@@ -119,6 +119,12 @@ function typeWriterEffect(text, chatBody) {
     type();
 }
 
+//Scroll to Bottom Function
+function scrollToBottom() {
+    const chatBody = document.getElementById('chatBody');
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
+
 // Add user's or bot's message to the chat
 function addMessage(content, sender) {
     const chatBody = document.getElementById('chatBody');
@@ -136,6 +142,38 @@ function addMessage(content, sender) {
     messageDiv.appendChild(labelDiv);
     messageDiv.appendChild(textDiv);
     chatBody.appendChild(messageDiv);
+    scrollToBottom();  // Automatically scroll to bottom
+}
+
+function typeWriterEffect(text, chatBody) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'chatbot__message chatbot__message--bot';
+
+    const labelDiv = document.createElement('div');
+    labelDiv.className = 'chatbot__label';
+    labelDiv.textContent = 'AI Assistant';
+
+    const textDiv = document.createElement('div');
+    textDiv.className = 'chatbot__text';
+    messageDiv.appendChild(labelDiv);
+    messageDiv.appendChild(textDiv);
+    chatBody.appendChild(messageDiv);
+
+    let i = 0;
+    function type() {
+        if (i < text.length) {
+            textDiv.textContent += text.charAt(i);
+            i++;
+            // Scroll to the bottom gradually as text is typed
+            scrollToBottom();
+            setTimeout(type, 50); // Adjust typing speed here
+        }
+    }
+    type();
+}
+
+function scrollToBottom() {
+    const chatBody = document.getElementById('chatBody');
     chatBody.scrollTop = chatBody.scrollHeight;
 }
 
