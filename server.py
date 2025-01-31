@@ -14,7 +14,7 @@ LANGFLOW_FLOW_ID = "9bd61166-c8f5-45a8-a3bf-9727a42673a6"
 LANGFLOW_LANGFLOW_ID = "7bc06c0e-d5c5-4097-b6f7-419630908d27"
 LANGFLOW_TOKEN = os.getenv("LANGFLOW_TOKEN")
 
-# Serve the static index.html
+# Serve the static index.html   
 @app.route('/', methods=['GET'])
 def serve_index():
     return app.send_static_file('index.html')
