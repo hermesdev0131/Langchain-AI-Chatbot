@@ -48,6 +48,21 @@ function toggleFullscreen() {
     }
 }
 
+function toggleColorChange() {
+    let count = parseInt(localStorage.getItem('count'), 10) || 0;
+    if (count === 0 || count % 2 !== 0) { 
+        document.getElementById('body').style.backgroundColor = '#3c3a3a';
+        document.getElementById('hero').style.backgroundColor = '#FFC300';
+        document.getElementById('features-section').style.backgroundColor = '#3c3a3a';
+        localStorage.setItem('count', count + 1); 
+    } else {
+        document.getElementById('body').style.backgroundColor = 'white';
+        document.getElementById('hero').style.backgroundColor = 'white';
+        document.getElementById('features-section').style.backgroundColor = '#151313';
+        localStorage.setItem('count', count + 1);
+    }
+}
+
 // Handle Enter Key Press
 function handleEnterKey(event) {
     if (event.key === 'Enter') {

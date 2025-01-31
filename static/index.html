@@ -17,43 +17,42 @@
   <!-- Custom CSS -->
   <link rel="stylesheet" href="../static/style.css" />
 </head>
-<body>
+<body id="body">
   <!-- Hero Section -->
-  <div class="hero">
-    <h1>Welcome to Our Chatbot Demo</h1>
-    <p>
-      Experience the future of AI-powered communication. Our interactive chatbot 
-      is here to answer your questions and showcase advanced conversational AI.
-    </p>
-  </div>
+  <div class="hero" id="hero">
+    <img  src="https://cdn.freelogovectors.net/wp-content/uploads/2023/10/wichita-state-university-logo-freelogovectors.net_.png" width ="800">
+</div>
 
   <!-- Features Section -->
-  <section class="features-section">
+  <section class="features-section" id="features-section">
     <h2>Why Choose Our Chatbot?</h2>
     <div class="features-grid">
       <div class="feature">
         <i class="fas fa-cog"></i>
-        <h3>Easy to Integrate</h3>
+        <h2>Easy to Integrate</h2>
         <p>Get started quickly with a plug-and-play solution compatible with various platforms.</p>
+        <button class="colorChange"  onclick="toggleColorChange()">colorChange</button>
       </div>
       <div class="feature">
         <i class="fas fa-lock"></i>
-        <h3>Secure & Private</h3>
+        <h2>Secure & Private</h2>
         <p>Enjoy encrypted communication and robust data protection for your peace of mind.</p>
       </div>
       <div class="feature">
         <i class="fas fa-users"></i>
-        <h3>Engaging UX</h3>
+        <h2>Engaging UX</h2>
         <p>Enhance user satisfaction with a friendly, intuitive chat interface.</p>
       </div>
     </div>
+    
   </section>
 
   <!-- Chatbot -->
   <div class="chatbot" id="chatbot">
     <!-- Chatbot Button -->
     <button class="chatbot__button" onclick="toggleChat()">
-      <i class="fas fa-comments"></i>
+      <img src="https://upload.wikimedia.org/wikipedia/en/thumb/9/90/Wichita_State_Shockers_logo.svg/300px-Wichita_State_Shockers_logo.svg.png" alt="Chatbot Image">
+      <div class="popup-message" id="popupMessage">Click Me!</div>
     </button>
 
     <!-- Chatbot Popup -->
@@ -82,11 +81,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Footer -->
-  <footer>
-    <p>&copy; 2025 AI Chabot Demo. All rights unreserved.</p>
-  </footer>
 
   <!-- Custom JavaScript -->
   <script src="../static/script.js"></script>
