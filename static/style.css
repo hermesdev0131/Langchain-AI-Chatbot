@@ -336,6 +336,21 @@
   /* Add spacing below */
 }
 
+#chatbot-thinking {
+    color: black;
+    font-style: italic;
+    font-weight: bold;
+    text-align: center; /* Center text horizontally */
+    margin-top: 10px; /* Add spacing below */
+  
+    position: absolute; /* Positioning */
+    bottom: 58px; /* Stick to the bottom */
+    padding-top: 10%;
+    left: 1%; /* Center it horizontally */
+    transform: translateX(-50%); /* Adjust centering */
+    width: 100%; /* Ensure it spans the full width */
+  }
+
 /* Thinking Div Animation */
 .thinking-animation {
   animation: pulse-scale 1.5s infinite ease-in-out, fade 3s infinite;
