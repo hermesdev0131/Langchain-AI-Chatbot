@@ -162,16 +162,15 @@ function typeWriterEffect(text, chatBody) {
   
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
+    
+    messageDiv.appendChild(iconContainer) 
+    const textDiv = document.createElement('div');
+    textDiv.className = 'chatbot__text';
     labelDiv.textContent = 'Shocker Assistant';                                                                                                                           
     
     const icon = document.createElement('i');
     icon.classList.add('fas', 'fa-robot');
     iconContainer.appendChild(icon);
-
-    
-    messageDiv.appendChild(iconContainer) 
-    const textDiv = document.createElement('div');
-    textDiv.className = 'chatbot__text';
     messageDiv.appendChild(labelDiv);
     messageDiv.appendChild(textDiv);
     chatBody.appendChild(messageDiv);
