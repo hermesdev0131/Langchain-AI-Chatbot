@@ -63,6 +63,11 @@ function toggleColorChange() {
     }
 }
 
+document.getElementById("close-notification").addEventListener("click", function() {
+    document.getElementById("chatbot-notification").style.display = "none";
+  });
+  
+
 // Handle Enter Key Press
 function handleEnterKey(event) {
     if (event.key === 'Enter') {
@@ -97,6 +102,7 @@ async function sendMessage() {
         thinkingDiv.classList.add('hidden');
         if (data.response) {
             // Show response with typewriter effect
+            
             typeWriterEffect(data.response, chatBody);
         } else {
             addMessage('Sorry, something went wrong.', 'bot');
@@ -112,13 +118,23 @@ async function sendMessage() {
 function typeWriterEffect(text, chatBody) {
     const messageDiv = document.createElement('div');
     messageDiv.className = 'chatbot__message chatbot__message--bot';
+    const iconContainer = document.createElement('div');
+    iconContainer.className = 'chatbot__icon-container';
+    
   
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
-    labelDiv.textContent = 'AI Assistant';                                                                                                                            
+    labelDiv.textContent = 'Shocker Assistant';                                                                                                                           
   
     const textDiv = document.createElement('div');
     textDiv.className = 'chatbot__text';
+    
+    const icon = document.createElement('i');
+    icon.classList.add('fas', 'fa-robot');
+    iconContainer.appendChild(icon);
+
+    
+    messageDiv.appendChild(iconContainer)  
     messageDiv.appendChild(labelDiv);
     messageDiv.appendChild(textDiv);
     chatBody.appendChild(messageDiv);
@@ -146,14 +162,27 @@ function addMessage(content, sender) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `chatbot__message chatbot__message--${sender}`;
 
+    const iconContainer = document.createElement('div');
+    iconContainer.className = 'chatbot__icon-container';
+
+    const icon = document.createElement('i');
+    if (sender === 'user') {
+        icon.classList.add('fas', 'fa-user-circle'); 
+    } else {
+        icon.classList.add('fas', 'fa-robot');
+    }
+
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
-    labelDiv.textContent = sender === 'user' ? 'You' : 'AI Assistant';
+    labelDiv.textContent = sender === 'user' ? 'You' : 'Shocker Assistant';
 
     const textDiv = document.createElement('div');
     textDiv.className = 'chatbot__text';
     textDiv.textContent = content;
 
+    iconContainer.appendChild(icon);
+
+    messageDiv.appendChild(iconContainer)
     messageDiv.appendChild(labelDiv);
     messageDiv.appendChild(textDiv);
     chatBody.appendChild(messageDiv);
