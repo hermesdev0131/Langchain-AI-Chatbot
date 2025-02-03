@@ -166,7 +166,7 @@ function typeWriterEffect(text, chatBody) {
 
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
-    labelDiv.textContent = 'AI Assistant';
+    labelDiv.textContent = 'Shocker Assistant';
 
     const textDiv = document.createElement('div');
     textDiv.className = 'chatbot__text';
