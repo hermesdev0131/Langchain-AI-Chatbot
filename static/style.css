@@ -2,7 +2,7 @@
     body {
       margin: 0;
       font-family: 'Roboto', sans-serif;
-      background-color: white;
+      background-color: #3c3a3a;
       display: flex;
       flex-direction: column;
       min-height: 100vh; /* Full viewport height */
@@ -29,13 +29,13 @@
       display: flex;
       justify-content: center;
       height: 500px;
-      background-color: white;
+      background-color: #FFC300;
     }
 
 
     /* Features Section */
     .features-section {
-      background-color: black;
+      background-color: #3c3a3a;
       color: #333;
       padding: 50px 20px;
       text-align: center;
@@ -144,6 +144,39 @@
       transform: scale(1.1);
       background-color: #27251F;
     }
+
+    .notification-box {
+      position: fixed;
+      bottom: 125px;
+      right: 30px;
+      overflow: hidden;
+      background-color: #FFC300;
+      color: black;
+      padding: 10px 20px;
+      border-radius: 3px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      font-size: 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 400px;
+      animation: bounce 1s infinite;
+    }
+    
+    .close-icon {
+      font-size: 30x;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: black;
+      padding: 0;
+      margin-left: 10px;
+    }
+    
+    .close-icon:hover {
+      color: #f1f1f1;
+    }
+    
 
 @keyframes pulseShadow {
 0% {
@@ -319,6 +352,7 @@ max-width: 80%;
 word-wrap: break-word;
 display: flex;
 flex-direction: column;
+position: relative;
 }
 
 /* User messages on the LEFT */
@@ -327,6 +361,7 @@ background-color: #eaeaea;
 color: #333;
 align-self: flex-start;
 border-radius: 10px 10px 10px 0;
+margin-left: 40px;
 }
 
 /* Bot messages on the RIGHT */
@@ -335,6 +370,14 @@ background-color: #c2a801;
 color: white;
 align-self: flex-end;
 border-radius: 10px 10px 0 10px;
+margin-right: 40px;
+}
+
+.chatbot__icon-container {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 22px;
 }
 
 /* Labels above each message */
@@ -354,6 +397,16 @@ text-align: left;
 .chatbot__message--bot .chatbot__label {
 align-self: flex-end;
 text-align: right;
+}
+
+.chatbot__message--user .chatbot__icon-container {
+  left: -40px;
+  color: black;
+}
+
+.chatbot__message--bot .chatbot__icon-container {
+  right: -40px;
+  color: black;
 }
 
 /* Scrollbar styling for chatbot body */
