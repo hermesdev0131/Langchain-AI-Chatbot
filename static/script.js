@@ -114,42 +114,6 @@ async function sendMessage() {
     }
 }
 
-// Function to simulate typing animation
-function typeWriterEffect(text, chatBody) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'chatbot__message chatbot__message--bot';
-    const iconContainer = document.createElement('div');
-    iconContainer.className = 'chatbot__icon-container';
-    
-  
-    const labelDiv = document.createElement('div');
-    labelDiv.className = 'chatbot__label';
-    labelDiv.textContent = 'Shocker Assistant';                                                                                                                           
-  
-    const textDiv = document.createElement('div');
-    textDiv.className = 'chatbot__text';
-    
-    const icon = document.createElement('i');
-    icon.classList.add('fas', 'fa-robot');
-    iconContainer.appendChild(icon);
-
-    
-    messageDiv.appendChild(iconContainer)  
-    messageDiv.appendChild(labelDiv);
-    messageDiv.appendChild(textDiv);
-    chatBody.appendChild(messageDiv);
-  
-    let i = 0;
-    function type() {
-        if (i < text.length) {
-            textDiv.textContent += text.charAt(i);
-            i++;
-            setTimeout(type, 50); // Adjust typing speed here
-        }
-    }
-    type();
-}
-
 //Scroll to Bottom Function
 function scrollToBottom() {
     const chatBody = document.getElementById('chatBody');
@@ -192,11 +156,20 @@ function addMessage(content, sender) {
 function typeWriterEffect(text, chatBody) {
     const messageDiv = document.createElement('div');
     messageDiv.className = 'chatbot__message chatbot__message--bot';
-
+    const iconContainer = document.createElement('div');
+    iconContainer.className = 'chatbot__icon-container';
+    
+  
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
-    labelDiv.textContent = 'AI Assistant';
+    labelDiv.textContent = 'Shocker Assistant';                                                                                                                           
+    
+    const icon = document.createElement('i');
+    icon.classList.add('fas', 'fa-robot');
+    iconContainer.appendChild(icon);
 
+    
+    messageDiv.appendChild(iconContainer) 
     const textDiv = document.createElement('div');
     textDiv.className = 'chatbot__text';
     messageDiv.appendChild(labelDiv);
