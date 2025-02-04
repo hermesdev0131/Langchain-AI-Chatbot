@@ -178,7 +178,7 @@ function makeLinksClickable(text) {
       // We'll specifically look for .?!, etc. Adjust if you want to
       // include or exclude other punctuation.
       let trailingPunctuation = '';
-      const punctMatch = match.match(/[.,!?]+$/);
+      const punctMatch = match.match(/[.,!?(){}\[\];:"'<>\s]+$/);
   
       if (punctMatch) {
         trailingPunctuation = punctMatch[0];         // e.g. "."
@@ -193,7 +193,7 @@ function makeLinksClickable(text) {
       }
   
       // Return the clickable link plus any trailing punctuation that was removed.
-      return `<a href="${link}" target="_blank" rel="noopener noreferrer">${match}</a>${trailingPunctuation}`;
+      return `<a href="${link}" target="_blank" rel="noopener noreferrer" style="color: #3c3a3a;">${match}</a>${trailingPunctuation}`;
     });
   }
   
