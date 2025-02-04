@@ -63,6 +63,11 @@ function toggleColorChange() {
     }
 }
 
+document.getElementById("close-notification").addEventListener("click", function() {
+    document.getElementById("chatbot-notification").style.display = "none";
+  });
+  
+
 // Handle Enter Key Press
 function handleEnterKey(event) {
     if (event.key === 'Enter') {
@@ -97,6 +102,7 @@ async function sendMessage() {
         thinkingDiv.classList.add('hidden');
         if (data.response) {
             // Show response with typewriter effect
+            
             typeWriterEffect(data.response, chatBody);
         } else {
             addMessage('Sorry, something went wrong.', 'bot');
@@ -106,32 +112,6 @@ async function sendMessage() {
         thinkingDiv.classList.add('hidden');
         addMessage('Error: ' + err.message, 'bot');
     }
-}
-
-// Function to simulate typing animation
-function typeWriterEffect(text, chatBody) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'chatbot__message chatbot__message--bot';
-  
-    const labelDiv = document.createElement('div');
-    labelDiv.className = 'chatbot__label';
-    labelDiv.textContent = 'AI Assistant';                                                                                                                            
-  
-    const textDiv = document.createElement('div');
-    textDiv.className = 'chatbot__text';
-    messageDiv.appendChild(labelDiv);
-    messageDiv.appendChild(textDiv);
-    chatBody.appendChild(messageDiv);
-  
-    let i = 0;
-    function type() {
-        if (i < text.length) {
-            textDiv.textContent += text.charAt(i);
-            i++;
-            setTimeout(type, 50); // Adjust typing speed here
-        }
-    }
-    type();
 }
 
 //Scroll to Bottom Function
@@ -146,34 +126,87 @@ function addMessage(content, sender) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `chatbot__message chatbot__message--${sender}`;
 
+    const iconContainer = document.createElement('div');
+    iconContainer.className = 'chatbot__icon-container';
+
+    const icon = document.createElement('i');
+    if (sender === 'user') {
+        icon.classList.add('fas', 'fa-user-circle'); 
+    } else {
+        icon.classList.add('fas', 'fa-robot');
+    }
+
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
-    labelDiv.textContent = sender === 'user' ? 'You' : 'AI Assistant';
+    labelDiv.textContent = sender === 'user' ? 'You' : 'Shocker Assistant';
 
     const textDiv = document.createElement('div');
     textDiv.className = 'chatbot__text';
     textDiv.textContent = content;
 
+
+    
+    // Just Added
+    if (sender === "bot") {
+      textDiv.innerHTML = makeLinksClickable(content);
+    } else {
+      textDiv.textContent = content;
+    }
+
+
+
+    iconContainer.appendChild(icon);
+    messageDiv.appendChild(iconContainer)
     messageDiv.appendChild(labelDiv);
     messageDiv.appendChild(textDiv);
     chatBody.appendChild(messageDiv);
     scrollToBottom();  // Automatically scroll to bottom
 }
 
+
+
+
+
+// Function to detect URLs in text and convert them into clickable links
+function makeLinksClickable(text) {
+    const urlPattern = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+    return text.replace(urlPattern, function (url) {
+      let link = url;
+      if (!link.startsWith("http")) {
+        link = "http://" + link; // Ensure links without "http" still work
+      }
+      return `<a href="${link}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+    });
+  }
+
+
+
+
 function typeWriterEffect(text, chatBody) {
     const messageDiv = document.createElement('div');
     messageDiv.className = 'chatbot__message chatbot__message--bot';
-
+    const iconContainer = document.createElement('div');
+    iconContainer.className = 'chatbot__icon-container';
+    
+  
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
-    labelDiv.textContent = 'AI Assistant';
-
+    labelDiv.textContent = "AI Assistant"; // Just Added
+    
+    messageDiv.appendChild(iconContainer) 
     const textDiv = document.createElement('div');
     textDiv.className = 'chatbot__text';
+    labelDiv.textContent = 'Shocker Assistant';      
+    textDiv.innerHTML = ""; // Will be populated letter by letter (Just Added)                                                                                                                     
+    
+    const icon = document.createElement('i');
+    icon.classList.add('fas', 'fa-robot');
+    iconContainer.appendChild(icon);
     messageDiv.appendChild(labelDiv);
     messageDiv.appendChild(textDiv);
     chatBody.appendChild(messageDiv);
 
+    let formattedText = makeLinksClickable(text);  // Just added
     let i = 0;
     function type() {
         if (i < text.length) {
@@ -181,8 +214,10 @@ function typeWriterEffect(text, chatBody) {
             i++;
             // Scroll to the bottom gradually as text is typed
             scrollToBottom();
-            setTimeout(type, 50); // Adjust typing speed here
-        }
+            setTimeout(type, 40); // Adjust typing speed here
+        } else {
+            textDiv.innerHTML = formattedText; // Ensure final result includes links (Just Added)
+          }
     }
     type();
 }
@@ -209,3 +244,10 @@ document.addEventListener('click', function(event) {
         popup.addEventListener('transitionend', handleFadeOut, { once: true });
     }
 });
+
+
+
+
+
+
+

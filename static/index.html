@@ -31,7 +31,6 @@
         <i class="fas fa-cog"></i>
         <h2>Easy to Integrate</h2>
         <p>Get started quickly with a plug-and-play solution compatible with various platforms.</p>
-        <button class="colorChange"  onclick="toggleColorChange()">colorChange</button>
       </div>
       <div class="feature">
         <i class="fas fa-lock"></i>
@@ -50,11 +49,13 @@
   <!-- Chatbot -->
   <div class="chatbot" id="chatbot">
     <!-- Chatbot Button -->
+    <div id="chatbot-notification" class="notification-box">
+      <p id="typing-text">I am Shocker Assistant! You can click me to ask anything.</p>
+      <span id="close-notification" class="close-icon">&times;</span>
+    </div>
     <button class="chatbot__button" onclick="toggleChat()">
       <img src="https://upload.wikimedia.org/wikipedia/en/thumb/9/90/Wichita_State_Shockers_logo.svg/300px-Wichita_State_Shockers_logo.svg.png" alt="Chatbot Image">
-      <div class="popup-message" id="popupMessage">Click Me!</div>
     </button>
-
     <!-- Chatbot Popup -->
     <div class="chatbot__popup" id="chatPopup">
       <div class="chatbot__header">
