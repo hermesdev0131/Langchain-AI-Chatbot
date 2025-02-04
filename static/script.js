@@ -132,10 +132,7 @@ function addMessage(content, sender) {
     const icon = document.createElement('i');
     if (sender === 'user') {
         icon.classList.add('fas', 'fa-user-circle'); 
-    } else {
-        icon.classList.add('fas', 'fa-robot');
     }
-
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
     labelDiv.textContent = sender === 'user' ? 'You' : 'Shocker Assistant';
@@ -218,8 +215,10 @@ function typeWriterEffect(text, chatBody) {
     labelDiv.textContent = 'Shocker Assistant';      
     textDiv.innerHTML = ""; // Will be populated letter by letter (Just Added)                                                                                                                     
     
-    const icon = document.createElement('i');
-    icon.classList.add('fas', 'fa-robot');
+    const icon = document.createElement('img');
+    icon.src = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/wichita.sidearmsports.com/images/responsive_2023/logo_main.svg"
+    icon.height = 30;
+    icon.weight  = 30;
     iconContainer.appendChild(icon);
     messageDiv.appendChild(labelDiv);
     messageDiv.appendChild(textDiv);
