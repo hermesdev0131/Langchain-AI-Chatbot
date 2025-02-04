@@ -169,15 +169,34 @@ function addMessage(content, sender) {
 
 // Function to detect URLs in text and convert them into clickable links
 function makeLinksClickable(text) {
-    const urlPattern = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
-    return text.replace(urlPattern, function (url) {
-      let link = url;
-      if (!link.startsWith("http")) {
-        link = "http://" + link; // Ensure links without "http" still work
+    // This pattern looks for URLs starting with http(s):// or www.,
+    // followed by non-whitespace characters.
+    const urlPattern = /((https?:\/\/|www\.)[^\s]+)/g;
+  
+    return text.replace(urlPattern, function (match) {
+      // Check if the URL ends with punctuation (like ., !, ?, etc.)
+      // We'll specifically look for .?!, etc. Adjust if you want to
+      // include or exclude other punctuation.
+      let trailingPunctuation = '';
+      const punctMatch = match.match(/[.,!?]+$/);
+  
+      if (punctMatch) {
+        trailingPunctuation = punctMatch[0];         // e.g. "."
+        // Remove trailing punctuation from the URL for the link
+        match = match.slice(0, -trailingPunctuation.length);
       }
-      return `<a href="${link}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+  
+      // Construct the link. If it doesn't start with http, prepend it.
+      let link = match;
+      if (!match.startsWith('http')) {
+        link = 'http://' + match;
+      }
+  
+      // Return the clickable link plus any trailing punctuation that was removed.
+      return `<a href="${link}" target="_blank" rel="noopener noreferrer">${match}</a>${trailingPunctuation}`;
     });
   }
+  
 
 
 
