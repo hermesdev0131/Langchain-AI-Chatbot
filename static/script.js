@@ -144,14 +144,43 @@ function addMessage(content, sender) {
     textDiv.className = 'chatbot__text';
     textDiv.textContent = content;
 
-    iconContainer.appendChild(icon);
 
+    
+    // Just Added
+    if (sender === "bot") {
+      textDiv.innerHTML = makeLinksClickable(content);
+    } else {
+      textDiv.textContent = content;
+    }
+
+
+
+    iconContainer.appendChild(icon);
     messageDiv.appendChild(iconContainer)
     messageDiv.appendChild(labelDiv);
     messageDiv.appendChild(textDiv);
     chatBody.appendChild(messageDiv);
     scrollToBottom();  // Automatically scroll to bottom
 }
+
+
+
+
+
+// Function to detect URLs in text and convert them into clickable links
+function makeLinksClickable(text) {
+    const urlPattern = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+    return text.replace(urlPattern, function (url) {
+      let link = url;
+      if (!link.startsWith("http")) {
+        link = "http://" + link; // Ensure links without "http" still work
+      }
+      return `<a href="${link}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+    });
+  }
+
+
+
 
 function typeWriterEffect(text, chatBody) {
     const messageDiv = document.createElement('div');
@@ -162,11 +191,13 @@ function typeWriterEffect(text, chatBody) {
   
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
+    labelDiv.textContent = "AI Assistant"; // Just Added
     
     messageDiv.appendChild(iconContainer) 
     const textDiv = document.createElement('div');
     textDiv.className = 'chatbot__text';
-    labelDiv.textContent = 'Shocker Assistant';                                                                                                                           
+    labelDiv.textContent = 'Shocker Assistant';      
+    textDiv.innerHTML = ""; // Will be populated letter by letter (Just Added)                                                                                                                     
     
     const icon = document.createElement('i');
     icon.classList.add('fas', 'fa-robot');
@@ -175,6 +206,7 @@ function typeWriterEffect(text, chatBody) {
     messageDiv.appendChild(textDiv);
     chatBody.appendChild(messageDiv);
 
+    let formattedText = makeLinksClickable(text);  // Just added
     let i = 0;
     function type() {
         if (i < text.length) {
@@ -182,8 +214,10 @@ function typeWriterEffect(text, chatBody) {
             i++;
             // Scroll to the bottom gradually as text is typed
             scrollToBottom();
-            setTimeout(type, 50); // Adjust typing speed here
-        }
+            setTimeout(type, 40); // Adjust typing speed here
+        } else {
+            textDiv.innerHTML = formattedText; // Ensure final result includes links (Just Added)
+          }
     }
     type();
 }
@@ -210,3 +244,10 @@ document.addEventListener('click', function(event) {
         popup.addEventListener('transitionend', handleFadeOut, { once: true });
     }
 });
+
+
+
+
+
+
+
