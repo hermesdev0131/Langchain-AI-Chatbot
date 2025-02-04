@@ -190,7 +190,7 @@ function makeLinksClickable(text) {
       }
   
       // Return the clickable link plus any trailing punctuation that was removed.
-      return `<a href="${link}" target="_blank" rel="noopener noreferrer" style="color: #3c3a3a;">${match}</a>${trailingPunctuation}`;
+      return `<a href="${link}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline">${match}</a>${trailingPunctuation}`;
     });
   }
   
