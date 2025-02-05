@@ -195,9 +195,6 @@ function makeLinksClickable(text) {
       return `<a href="${link}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline">${match}</a>${trailingPunctuation}`;
     });
   }
-  
-
-
 
 
 function typeWriterEffect(text, chatBody) {
