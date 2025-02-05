@@ -391,6 +391,7 @@ color: #FFC300;
 align-self: flex-start;
 border-radius: 10px 10px 10px 0;
 margin-left: 40px;
+margin-bottom: 25px;
 }
 
 /* Bot messages on the RIGHT */
@@ -582,4 +583,22 @@ display: none;
 .feature {
   max-width: 80%;
 }
+}
+
+
+@keyframes chatbot__button {
+  0% {
+      transform: scale(1)
+          rotate(-45deg);
+  }
+
+  25% {
+      transform: scale(1.25)
+          rotate(-45deg);
+  }
+
+  45% {
+      transform: scale(1.5)
+          rotate(-45deg);
+  }
 }
