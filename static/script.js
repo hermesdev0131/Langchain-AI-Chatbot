@@ -129,9 +129,11 @@ function addMessage(content, sender) {
     const iconContainer = document.createElement('div');
     iconContainer.className = 'chatbot__icon-container';
 
-    const icon = document.createElement('i');
+    const icon = document.createElement('img');
     if (sender === 'user') {
-        icon.classList.add('fas', 'fa-user-circle'); 
+        icon.src = "https://cdn-icons-png.flaticon.com/512/3870/3870822.png"
+        icon.height = 30;
+        icon.weight  = 30;
     }
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
