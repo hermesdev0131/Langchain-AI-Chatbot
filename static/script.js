@@ -232,7 +232,7 @@ function typeWriterEffect(text, chatBody) {
             i++;
             // Scroll to the bottom gradually as text is typed
             scrollToBottom();
-            setTimeout(type, 40); // Adjust typing speed here
+            setTimeout(type, 10); // Adjust typing speed here
         } else {
             textDiv.innerHTML = formattedText; // Ensure final result includes links (Just Added)
           }
