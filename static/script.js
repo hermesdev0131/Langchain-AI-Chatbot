@@ -201,6 +201,7 @@ function makeLinksClickable(text) {
 
 
 function typeWriterEffect(text, chatBody) {
+    const words = text.split(' '); // Split text into words
     const messageDiv = document.createElement('div');
     messageDiv.className = 'chatbot__message chatbot__message--bot';
     const iconContainer = document.createElement('div');
