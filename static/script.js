@@ -4,27 +4,39 @@ function toggleChat() {
     const isVisible = popup.classList.contains('show');
 
     if (isVisible) {
-        // Start fade-out animation
         popup.classList.add('fade-out');
-
-        // Listen for transition end to hide the popup once
-        popup.addEventListener('transitionend', handleFadeOut, { once: true });
+        popup.addEventListener('transitionend', () => {
+            popup.style.display = 'none';
+            popup.classList.remove('show', 'fade-out');
+        }, { once: true });
     } else {
-        // Remove any existing fade-out class
-        popup.classList.remove('fade-out');
-
-        // Show popup and start fade-in animation
         popup.style.display = 'flex';
-        // Force reflow to restart the transition
-        void popup.offsetWidth;
+        popup.classList.remove('fade-out');
+        void popup.offsetWidth; // Restart animation
         popup.classList.add('show');
+        
+        // Responsive chatbot height
+        if (window.innerWidth < 768) {
+            popup.style.height = "400px";
+        } else {
+            popup.style.height = "500px";
+        }
 
-        // Automatically focus on the input box after transition
         setTimeout(() => {
             document.getElementById('chatInput').focus();
-        }, 300); // Match this timeout with the CSS transition duration
+        }, 300);
     }
 }
+
+// Adjust chatbot for small screens
+window.addEventListener('resize', () => {
+    const popup = document.getElementById('chatPopup');
+    if (window.innerWidth < 768) {
+        popup.style.height = "400px";
+    } else {
+        popup.style.height = "500px";
+    }
+});
 
 // Handle fade-out transition end
 function handleFadeOut(event) {
@@ -165,6 +177,7 @@ function addMessage(content, sender) {
 
 // Function to detect URLs in text and convert them into clickable links
 function makeLinksClickable(text) {
+
     // This pattern looks for URLs starting with http(s):// or www.,
     // followed by non-whitespace characters.
     const urlPattern = /((https?:\/\/|www\.)[^\s]+)/g;
