@@ -150,8 +150,6 @@ function addMessage(content, sender) {
       textDiv.textContent = content;
     }
 
-
-
     iconContainer.appendChild(icon);
     messageDiv.appendChild(iconContainer)
     messageDiv.appendChild(labelDiv);
