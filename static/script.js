@@ -158,10 +158,6 @@ function addMessage(content, sender) {
     scrollToBottom();  // Automatically scroll to bottom
 }
 
-
-
-
-
 // Function to detect URLs in text and convert them into clickable links
 function makeLinksClickable(text) {
     // This pattern looks for URLs starting with http(s):// or www.,
