@@ -124,7 +124,7 @@ function scrollToBottom() {
 function addMessage(content, sender) {
     const chatBody = document.getElementById('chatBody');
     const messageDiv = document.createElement('div');
-    messageDiv.className = `chatbot__message chatbot__message--${sender}`;
+    messageDiv.className = `chatbot__message chatbot__message--${sender} message-fade-in`;
 
     const iconContainer = document.createElement('div');
     iconContainer.className = 'chatbot__icon-container';
@@ -135,6 +135,7 @@ function addMessage(content, sender) {
         icon.height = 30;
         icon.weight  = 30;
     }
+
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
     labelDiv.textContent = sender === 'user' ? 'You' : 'Shocker Assistant';
@@ -142,20 +143,24 @@ function addMessage(content, sender) {
     const textDiv = document.createElement('div');
     textDiv.className = 'chatbot__text';
     textDiv.textContent = content;
-
-
-    if (sender === "bot") {
-      textDiv.innerHTML = makeLinksClickable(content);
-    } else {
-      textDiv.textContent = content;
-    }
-
+    
     iconContainer.appendChild(icon);
     messageDiv.appendChild(iconContainer)
     messageDiv.appendChild(labelDiv);
     messageDiv.appendChild(textDiv);
     chatBody.appendChild(messageDiv);
     scrollToBottom();  // Automatically scroll to bottom
+
+    // Trigger animation
+    setTimeout(() => {
+        messageDiv.classList.add('message-slide-up');
+    }, 50);
+
+    if (sender === "bot") {
+      textDiv.innerHTML = makeLinksClickable(content);
+    } else {
+      textDiv.textContent = content;
+    }
 }
 
 // Function to detect URLs in text and convert them into clickable links

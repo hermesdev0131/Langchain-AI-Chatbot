@@ -395,6 +395,21 @@ cursor: pointer;
 transition: background-color 0.3s ease;
 }
 
+/* Message Initial Fade-in */
+.message-fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease-in, transform 0.3s ease-in;
+}
+
+/* Smooth Upward Flow Effect */
+.message-slide-up {
+  opacity: 1;
+  transform: translateY(0);
+  transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+}
+
+
 .chatbot__send:hover {
 background-color: #27251F;
 }
