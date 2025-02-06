@@ -319,6 +319,14 @@ font-size: 18px;
 cursor: pointer;
 }
 
+#fullscreenButton {
+  transition: transform 0.2s ease; /* Smooth transition */
+}
+
+#fullscreenButton:hover {
+  transform: scale(0.85); /* Shrink to 95% on hover */
+}
+
 .logoClass{
 align-content: center;
 width: 200;
