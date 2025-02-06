@@ -4,39 +4,27 @@ function toggleChat() {
     const isVisible = popup.classList.contains('show');
 
     if (isVisible) {
+        // Start fade-out animation
         popup.classList.add('fade-out');
-        popup.addEventListener('transitionend', () => {
-            popup.style.display = 'none';
-            popup.classList.remove('show', 'fade-out');
-        }, { once: true });
-    } else {
-        popup.style.display = 'flex';
-        popup.classList.remove('fade-out');
-        void popup.offsetWidth; // Restart animation
-        popup.classList.add('show');
-        
-        // Responsive chatbot height
-        if (window.innerWidth < 768) {
-            popup.style.height = "400px";
-        } else {
-            popup.style.height = "500px";
-        }
 
+        // Listen for transition end to hide the popup once
+        popup.addEventListener('transitionend', handleFadeOut, { once: true });
+    } else {
+        // Remove any existing fade-out class
+        popup.classList.remove('fade-out');
+
+        // Show popup and start fade-in animation
+        popup.style.display = 'flex';
+        // Force reflow to restart the transition
+        void popup.offsetWidth;
+        popup.classList.add('show');
+
+        // Automatically focus on the input box after transition
         setTimeout(() => {
             document.getElementById('chatInput').focus();
-        }, 300);
+        }, 300); // Match this timeout with the CSS transition duration
     }
 }
-
-// Adjust chatbot for small screens
-window.addEventListener('resize', () => {
-    const popup = document.getElementById('chatPopup');
-    if (window.innerWidth < 768) {
-        popup.style.height = "400px";
-    } else {
-        popup.style.height = "500px";
-    }
-});
 
 // Handle fade-out transition end
 function handleFadeOut(event) {
@@ -136,7 +124,7 @@ function scrollToBottom() {
 function addMessage(content, sender) {
     const chatBody = document.getElementById('chatBody');
     const messageDiv = document.createElement('div');
-    messageDiv.className = `chatbot__message chatbot__message--${sender} message-fade-in`;
+    messageDiv.className = `chatbot__message chatbot__message--${sender}message-fade-in`;
 
     const iconContainer = document.createElement('div');
     iconContainer.className = 'chatbot__icon-container';
@@ -147,7 +135,6 @@ function addMessage(content, sender) {
         icon.height = 30;
         icon.weight  = 30;
     }
-
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
     labelDiv.textContent = sender === 'user' ? 'You' : 'Shocker Assistant';
@@ -155,29 +142,24 @@ function addMessage(content, sender) {
     const textDiv = document.createElement('div');
     textDiv.className = 'chatbot__text';
     textDiv.textContent = content;
-    
-    iconContainer.appendChild(icon);
-    messageDiv.appendChild(iconContainer)
-    messageDiv.appendChild(labelDiv);
-    messageDiv.appendChild(textDiv);
-    chatBody.appendChild(messageDiv);
-    scrollToBottom();  // Automatically scroll to bottom
 
-    // Trigger animation
-    setTimeout(() => {
-        messageDiv.classList.add('message-slide-up');
-    }, 50);
 
     if (sender === "bot") {
       textDiv.innerHTML = makeLinksClickable(content);
     } else {
       textDiv.textContent = content;
     }
+
+    iconContainer.appendChild(icon);
+    messageDiv.appendChild(iconContainer)
+    messageDiv.appendChild(labelDiv);
+    messageDiv.appendChild(textDiv);
+    chatBody.appendChild(messageDiv);
+    scrollToBottom();  // Automatically scroll to bottom
 }
 
 // Function to detect URLs in text and convert them into clickable links
 function makeLinksClickable(text) {
-
     // This pattern looks for URLs starting with http(s):// or www.,
     // followed by non-whitespace characters.
     const urlPattern = /((https?:\/\/|www\.)[^\s]+)/g;
