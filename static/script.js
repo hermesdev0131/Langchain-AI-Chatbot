@@ -124,7 +124,7 @@ function scrollToBottom() {
 function addMessage(content, sender) {
     const chatBody = document.getElementById('chatBody');
     const messageDiv = document.createElement('div');
-    messageDiv.className = `chatbot__message chatbot__message--${sender}message-fade-in`;
+    messageDiv.className = `chatbot__message chatbot__message--${sender}`;
 
     const iconContainer = document.createElement('div');
     iconContainer.className = 'chatbot__icon-container';
