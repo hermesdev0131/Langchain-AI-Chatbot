@@ -254,10 +254,3 @@ document.addEventListener('click', function(event) {
         popup.addEventListener('transitionend', handleFadeOut, { once: true });
     }
 });
-
-
-
-
-
-
-

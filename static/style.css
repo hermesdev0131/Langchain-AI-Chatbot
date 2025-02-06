@@ -99,6 +99,26 @@
       
     }
 
+    /* Chatbot send button with a paper airplane icon */
+    .chatbot__send {
+      background-color: #4CAF50; /* Green background */
+      color: white; /* White text */
+      border: none; /* Remove border */
+      padding: 10px 20px; /* Add some padding */
+      text-align: center; /* Center the text */
+      text-decoration: none; /* Remove underline */
+      display: inline-flex; /* Use inline-flex to align icon and text */
+      align-items: center; /* Center items vertically */
+      font-size: 16px; /* Increase font size */
+      cursor: pointer; /* Add a pointer cursor on hover */
+      border-radius: 5px; /* Rounded corners */
+  }
+  
+  .chatbot__send i {
+      margin-right: 8px; /* Space between icon and text */
+  }
+  
+
     .chatbot__button {
       width: 100px;
       height: 100px;
@@ -349,7 +369,6 @@ background-position: center;
 /* Centers the image in the body */
 background-blend-mode: overlay;
 }
-
 
 .chatbot__footer {
 display: flex;

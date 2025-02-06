@@ -14,6 +14,8 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
     rel="stylesheet"
   />
+  <!--icon for send button-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <!-- Custom CSS -->
   <link rel="stylesheet" href="../static/style.css" />
 </head>
@@ -78,7 +80,9 @@
           placeholder="Share your thoughts..."
           onkeypress="handleEnterKey(event)"
         />
-        <button class="chatbot__send" onclick="sendMessage()">Send</button>
+        <button class="chatbot__send" onclick="sendMessage()">
+          <i class="fas fa-paper-plane"></i> Send
+        </button>
       </div>
     </div>
   </div>
