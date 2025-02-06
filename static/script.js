@@ -144,8 +144,6 @@ function addMessage(content, sender) {
     textDiv.textContent = content;
 
 
-    
-    // Just Added
     if (sender === "bot") {
       textDiv.innerHTML = makeLinksClickable(content);
     } else {
@@ -207,13 +205,13 @@ function typeWriterEffect(text, chatBody) {
   
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
-    labelDiv.textContent = "AI Assistant"; // Just Added
+    labelDiv.textContent = "AI Assistant";
     
     messageDiv.appendChild(iconContainer) 
     const textDiv = document.createElement('div');
     textDiv.className = 'chatbot__text';
     labelDiv.textContent = 'Shocker Assistant';      
-    textDiv.innerHTML = ""; // Will be populated letter by letter (Just Added)                                                                                                                     
+    textDiv.innerHTML = ""; // Will be populated letter by letter                                                                                                                   
     
     const icon = document.createElement('img');
     icon.src = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/wichita.sidearmsports.com/images/responsive_2023/logo_main.svg"
@@ -224,7 +222,7 @@ function typeWriterEffect(text, chatBody) {
     messageDiv.appendChild(textDiv);
     chatBody.appendChild(messageDiv);
 
-    let formattedText = makeLinksClickable(text);  // Just added
+    let formattedText = makeLinksClickable(text);  
     let i = 0;
     function type() {
         if (i < text.length) {
@@ -234,7 +232,7 @@ function typeWriterEffect(text, chatBody) {
             scrollToBottom();
             setTimeout(type, 10); // Adjust typing speed here
         } else {
-            textDiv.innerHTML = formattedText; // Ensure final result includes links (Just Added)
+            textDiv.innerHTML = formattedText; // Ensure final result includes links
           }
     }
     type();
