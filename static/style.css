@@ -159,8 +159,9 @@
 
     /*iamge for the button */
     .chatbot__button img {
-      width: 85px;  /* adjust the width */
-      height: auto; /* keep the aspect ratio */
+      max-width: 100%;
+      height: auto;
+      width: 80px;
   }
   
 
@@ -425,6 +426,7 @@ word-wrap: break-word;
 display: flex;
 flex-direction: column;
 position: relative;
+animation: fadeIn 1s;
 }
 
 /* User messages on the LEFT */
