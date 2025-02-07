@@ -135,6 +135,11 @@ function addMessage(content, sender) {
         icon.height = 30;
         icon.weight  = 30;
     }
+    else{
+        icon.src = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/wichita.sidearmsports.com/images/responsive_2023/logo_main.svg"
+        icon.height = 30;
+        icon.weight  = 30;
+    }
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
     labelDiv.textContent = sender === 'user' ? 'You' : 'Shocker Assistant';
