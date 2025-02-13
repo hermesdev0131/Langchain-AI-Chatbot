@@ -187,11 +187,33 @@ function makeLinksClickable(text) {
       if (!match.startsWith('http')) {
         link = 'http://' + match;
       }
-  
-      // Return the clickable link plus any trailing punctuation that was removed.
-      return `<a href="${link}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline">${match}</a>${trailingPunctuation}`;
+
+
+        return `<a href="${link}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline">
+            <img src="static/icons/redirect-grad.png" alt="External Link" style="width: 20px; height: 20px; vertical-align: middle; color:blue;">
+            <img src="static/icons/open-eye-grad.png" alt="External Link" 
+                 style="width: 22px; height: 22px; vertical-align: middle; cursor: pointer;" 
+                 onclick="toggleLinkText(event, this, '${link}')">
+            <span class="hidden-link-text" style="display: none; margin-left: 5px;">${link}</span>
+        </a>${trailingPunctuation}`;
+
     });
   }
+
+  function toggleLinkText(event, imgElement, link) {
+    event.preventDefault(); // Prevents navigation when clicking the image
+    const span = imgElement.nextElementSibling; // Get the span next to the image
+
+    if (span.style.display === 'none' || span.style.display === '') {
+        span.style.display = 'inline';
+        imgElement.src = "static/icons/close-eye-grad.png"; // Change to another image
+    } else {
+        span.style.display = 'none';
+        imgElement.src = "static/icons/open-eye-grad.png"; // Change back to original image
+    }
+}
+
+
 
 
 function typeWriterEffect(text, chatBody) {
