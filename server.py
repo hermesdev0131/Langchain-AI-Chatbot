@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 import os
 from dotenv import load_dotenv
-import asyncio
 from langflow_api import run_flow
 
 load_dotenv()
