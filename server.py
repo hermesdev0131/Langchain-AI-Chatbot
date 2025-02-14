@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify
+import aiofiles
+from quart import Quart, request, jsonify, Response
 import os
 from dotenv import load_dotenv
 from langflow_api import run_flow
@@ -6,17 +7,23 @@ from langflow_api import run_flow
 load_dotenv()
 RENDER_LANGFLOW_API_KEY = os.getenv("RENDER_LANGFLOW_API_KEY")
 
-app = Flask(__name__, static_folder='static')
+app = Quart(__name__, static_folder='static')
 
 # Serve the static index.html
 @app.route('/', methods=['GET'])
-def serve_index():
-    return app.send_static_file('index.html')
+async def serve_index():
+    file_path = os.path.join(app.static_folder, "index.html")
+    try:
+        async with aiofiles.open(file_path, mode='r', encoding='utf-8') as f:
+            content = await f.read()
+        return Response(content, mimetype='text/html')
+    except FileNotFoundError:
+        return Response("index.html not found", status=404)
 
 # Handle POST requests from the front-end
 @app.route('/', methods=['POST'])
 async def handle_post():
-    data = request.get_json()
+    data = await request.get_json()
     user_message = data.get('userMessage', 'No message provided')
 
     response = await run_flow(user_message, api_key=RENDER_LANGFLOW_API_KEY)
@@ -25,4 +32,4 @@ async def handle_post():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))
-    app.run(host='0.0.0.0', port=port, threaded=True)
+    app.run(host='0.0.0.0', port=port)

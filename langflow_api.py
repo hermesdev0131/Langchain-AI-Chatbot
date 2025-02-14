@@ -34,11 +34,21 @@ async def run_flow(
     if api_key:
         headers["x-api-key"] = api_key
 
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(api_url, json=payload, headers=headers) as response:
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.post(api_url, json=payload, headers=headers, timeout=10) as response:
                 response_json = await response.json()
                 print("API Response: ", response_json)
-                return response_json["outputs"][0]["outputs"][0]["outputs"]["message"]["message"]["text"]
-    except aiohttp.ClientError as e:
-        return {"error": str(e)}
+
+                return (
+                    response_json.get("outputs", [{}])[0]
+                    .get("outputs", [{}])[0]
+                    .get("outputs", {})
+                    .get("message", {})
+                    .get("message", {})
+                    .get("text", "No response text found")
+                )
+        except aiohttp.ClientTimeout:
+            return {"error": "API request timed out"}
+        except aiohttp.ClientError as e:
+            return {"error": f"API request failed: {str(e)}"}
