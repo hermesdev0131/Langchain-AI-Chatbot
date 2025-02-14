@@ -1,8 +1,8 @@
 import aiohttp
 from typing import Optional
 
-BASE_API_URL = "https://langflow-tyrd.onrender.com"
-FLOW_ID = "e17f2af5-0a4d-43c7-9505-daafbe671278"
+BASE_API_URL = "https://langflow-te0k.onrender.com"
+FLOW_ID = "62283816-fdec-48d4-a1f2-5205cbbaf3ee"
 
 async def run_flow(
     message: str,
@@ -38,6 +38,7 @@ async def run_flow(
         async with aiohttp.ClientSession() as session:
             async with session.post(api_url, json=payload, headers=headers) as response:
                 response_json = await response.json()
+                print("API Response: ", response_json)
                 return response_json["outputs"][0]["outputs"][0]["outputs"]["message"]["message"]["text"]
     except aiohttp.ClientError as e:
         return {"error": str(e)}
