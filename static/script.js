@@ -1,4 +1,7 @@
 // Function to toggle chatbot visibility with animations
+
+let isFirstOpen = true; // Added FAQ flag
+
 function toggleChat() {
     const popup = document.getElementById('chatPopup');
     const isVisible = popup.classList.contains('show');
@@ -23,7 +26,46 @@ function toggleChat() {
         setTimeout(() => {
             document.getElementById('chatInput').focus();
         }, 300); // Match this timeout with the CSS transition duration
+         // Added FAQ display logic
+         if (isFirstOpen) {
+            displayFAQs();
+            isFirstOpen = false;
+        }
     }
+}
+
+// Added FAQ functions
+function displayFAQs() {
+    const chatBody = document.getElementById('chatBody');
+    const faqQuestions = [
+        "Who is Tonya?",
+        "Tell me about Innovation Campus.",
+        "Tell me about TIE.",
+        "Who is Brendon?"
+    ];
+    // Add FAQ container
+    const faqContainer = document.createElement('div');
+    faqContainer.className = 'faq-container';
+
+    faqQuestions.forEach(question => {
+        const faqDiv = document.createElement('div');
+        faqDiv.className = 'faq-question';
+        faqDiv.innerHTML = `
+            <div class="faq-icon">
+                <i class="fas fa-comment-dots"></i>
+            </div>
+            <div class="faq-text" onclick="sendFAQ('${question}')">${question}</div>
+        `;
+        faqContainer.appendChild(faqDiv);
+    });
+
+    chatBody.appendChild(faqContainer);
+    scrollToBottom();
+}
+function sendFAQ(question) {
+    const input = document.getElementById('chatInput');
+    input.value = question;
+    sendMessage();
 }
 
 // Handle fade-out transition end
