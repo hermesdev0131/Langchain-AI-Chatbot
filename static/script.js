@@ -34,39 +34,51 @@ function toggleChat() {
     }
 }
 
-// Added FAQ functions
-function displayFAQs() {
+// Updated function to fetch FAQs from the server
+async function displayFAQs() {
     const chatBody = document.getElementById('chatBody');
-    const faqQuestions = [
-        "Who is Tonya?",
-        "Tell me about Innovation Campus.",
-        "Tell me about TIE.",
-        "Who is Brendon?"
-    ];
-    // Add FAQ container
-    const faqContainer = document.createElement('div');
-    faqContainer.className = 'faq-container';
+    try {
+        // Fetch FAQ questions from the backend endpoint
+        const response = await fetch('/api/faqs');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        // Expecting a JSON array of questions (either strings or objects)
+        const faqQuestions = await response.json();
 
-    faqQuestions.forEach(question => {
-        const faqDiv = document.createElement('div');
-        faqDiv.className = 'faq-question';
-        faqDiv.innerHTML = `
-            <div class="faq-icon">
-                <i class="fas fa-comment-dots"></i>
-            </div>
-            <div class="faq-text" onclick="sendFAQ('${question}')">${question}</div>
-        `;
-        faqContainer.appendChild(faqDiv);
-    });
+        // Create the FAQ container element
+        const faqContainer = document.createElement('div');
+        faqContainer.className = 'faq-container';
 
-    chatBody.appendChild(faqContainer);
-    scrollToBottom();
+        // Iterate through each question and create a clickable FAQ entry
+        faqQuestions.forEach(questionObj => {
+            // If your endpoint returns an object, use a property (like questionObj.question)
+            // Otherwise, if it's a simple string, use it directly.
+            const question = typeof questionObj === 'string' ? questionObj : questionObj.question;
+            const faqDiv = document.createElement('div');
+            faqDiv.className = 'faq-question';
+            faqDiv.innerHTML = `
+                <div class="faq-icon">
+                    <i class="fas fa-comment-dots"></i>
+                </div>
+                <div class="faq-text" onclick="sendFAQ('${question}')">${question}</div>
+            `;
+            faqContainer.appendChild(faqDiv);
+        });
+
+        chatBody.appendChild(faqContainer);
+        scrollToBottom();
+    } catch (error) {
+        console.error("Error fetching FAQs:", error);
+    }
 }
+
 function sendFAQ(question) {
     const input = document.getElementById('chatInput');
     input.value = question;
     sendMessage();
 }
+
 
 // Handle fade-out transition end
 function handleFadeOut(event) {

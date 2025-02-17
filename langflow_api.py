@@ -38,8 +38,7 @@ async def run_flow(
         try:
             async with session.post(api_url, json=payload, headers=headers, timeout=10) as response:
                 response_json = await response.json()
-                print("API Response: ", response_json)
-
+                
                 return (
                     response_json.get("outputs", [{}])[0]
                     .get("outputs", [{}])[0]
