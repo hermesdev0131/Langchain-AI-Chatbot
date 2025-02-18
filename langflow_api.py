@@ -1,5 +1,6 @@
 import aiohttp
 from typing import Optional
+from asyncio import TimeoutError
 
 BASE_API_URL = "https://langflow-te0k.onrender.com"
 FLOW_ID = "62283816-fdec-48d4-a1f2-5205cbbaf3ee"
@@ -47,7 +48,7 @@ async def run_flow(
                     .get("message", {})
                     .get("text", "No response text found")
                 )
-        except aiohttp.ClientTimeout:
+        except TimeoutError:
             return {"error": "API request timed out"}
         except aiohttp.ClientError as e:
             return {"error": f"API request failed: {str(e)}"}
