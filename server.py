@@ -1,14 +1,13 @@
 import aiofiles
 from quart import Quart, request, jsonify, Response
-from pymilvus import connections, Collection
 import os
 from dotenv import load_dotenv
 from langflow_api import run_flow
-from pymilvus import MilvusClient, DataType
 import numpy as np
 import requests
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+import uvicorn
 
 load_dotenv()
 RENDER_LANGFLOW_API_KEY = os.getenv("RENDER_LANGFLOW_API_KEY")
@@ -75,5 +74,9 @@ async def get_faqs():
     return jsonify(faqs)
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8000))
-    app.run(host='0.0.0.0', port=port)
+    port = int(os.environ.get("PORT", 8000))
+
+    # Run Uvicorn only if not running inside Render (which starts it automatically)
+    if "RENDER" not in os.environ:
+        print(f"Running locally on port {port}...")
+        uvicorn.run("server:app", host="0.0.0.0", port=port, reload=True)
