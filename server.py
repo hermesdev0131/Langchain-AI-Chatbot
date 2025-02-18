@@ -8,11 +8,17 @@ import requests
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import uvicorn
+import openai
+import tempfile
+from limits.storage import MemoryStorage
+from limits.strategies import FixedWindowRateLimiter
+import time
 
 load_dotenv()
 RENDER_LANGFLOW_API_KEY = os.getenv("RENDER_LANGFLOW_API_KEY")
 ZILLIZ_AUTH_TOKEN = os.getenv("ZILLIZ_AUTH_TOKEN")
 ZILLIZ_URL = "https://in03-30505f4d990015f.serverless.gcp-us-west1.cloud.zilliz.com/v2/vectordb/entities/query"
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = Quart(__name__, static_folder='static')
 executor = ThreadPoolExecutor()
@@ -55,6 +61,58 @@ def query_faqs():
     response = requests.post(ZILLIZ_URL, json=payload, headers=headers)
     
     return response.json()
+
+# Rate limiting settings
+storage = MemoryStorage()  # Uses in-memory storage for limits
+rate_limiter = FixedWindowRateLimiter(storage)
+RATE_LIMIT = 5  # Max requests allowed
+RATE_WINDOW = 60  # Time window in seconds (5 per minute)
+# Track request timestamps per user (IP-based)
+user_requests = {}
+MAX_AUDIO_FILE_SIZE = 2 * 1024 * 1024  # 2MB file size limit (approx 10s audio)
+
+@app.route('/api/transcribe', methods=['POST'])
+async def transcribe_audio():
+    user_ip = request.remote_addr  # Get user IP
+
+    # Rate limiting logic
+    current_time = time.time()
+    request_timestamps = user_requests.get(user_ip, [])
+    request_timestamps = [t for t in request_timestamps if current_time - t < RATE_WINDOW]
+
+    if len(request_timestamps) >= RATE_LIMIT:
+        return jsonify({"error": "Rate limit exceeded. Try again later."}), 429
+
+    request_timestamps.append(current_time)
+    user_requests[user_ip] = request_timestamps
+
+    files = await request.files
+    if 'file' not in files:
+        return jsonify({"error": "No audio file provided"}), 400
+
+    audio_file = files['file']
+
+    if audio_file.content_length > MAX_AUDIO_FILE_SIZE:
+        return jsonify({"error": "Audio file is too large. Please record a shorter clip."}), 400
+
+    try:
+        temp_fd, temp_path = tempfile.mkstemp(suffix=".webm")
+        os.close(temp_fd)
+        await audio_file.save(temp_path)
+
+        with open(temp_path, "rb") as audio:
+            transcript = openai.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio
+            )
+
+        os.remove(temp_path)
+        transcript_text = transcript.text if hasattr(transcript, 'text') else transcript.get("text", "")
+
+        return jsonify({"transcript": transcript.text})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/faqs', methods=['GET'])
 async def get_faqs():
