@@ -101,7 +101,7 @@ footer {
 
 /* Chatbot send button with a paper airplane icon */
 .chatbot__send {
-  background-color: #4CAF50; /* Green background */
+  background-color: #ffffff; /* Green background */
   color: white; /* White text */
   border: none; /* Remove border */
   padding: 10px 20px; /* Add some padding */
@@ -117,7 +117,7 @@ footer {
 /* FAQ Styles */
 .faq-container {
   margin: 10px;
-  background: #f1f1f1;
+  background: #f1f1f160;
   border-radius: 10px;
   padding: 20px;
 }
@@ -159,7 +159,7 @@ footer {
 }
   
 .chatbot__send i {
-  margin-right: 8px; /* Space between icon and text */
+  margin-right: 1px; /* Space between icon and text */
 }
   
 .chatbot__button {
@@ -410,28 +410,62 @@ background-blend-mode: overlay;
 }
 
 .chatbot__footer {
-display: flex;
-padding: 10px;
-background-color: #3c3a3a;
-border-top: 1px solid #f9f9f9;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: #3c3a3a;
+  border-top: 1px solid #f9f9f9;
 }
 
+/* Record Button: matches Send Button style, flips on hover */
+.chatbot__record-button {
+  padding: 10px 15px;
+  background-color: #FFC300;  /* Same gold as Send */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  font-size: 16px;
+  margin-right: 10px; /* Space between record and input */
+}
+
+.chatbot__record-button:hover {
+  background-color: #27251F; /* Flip color scheme on hover */
+  color: #FFC300;
+}
+
+/* Shrink the input to make room for the record button */
 .chatbot__input {
-flex: 1;
-padding: 10px;
-border: 1px solid #f9f9f9;
-border-radius: 5px;
-margin-right: 10px;
+  flex: 1;                  /* Let it grow/shrink as needed */
+  max-width: 100%;         /* Constrain the maximum width */
+  margin-right: 10px;       /* Space before the Send button */
+  padding: 10px;
+  border: 1px solid #f9f9f9;
+  border-radius: 5px;
+  background-color: #fff;   /* If you want white or another color inside */
+  color: #000;              /* Text color */
 }
 
+/* The Send button is presumably already styled, but ensure it matches flipping behavior */
 .chatbot__send {
-padding: 10px 15px;
-background-color: #FFC300; 
-color: white;
-border: none;
-border-radius: 5px;
-cursor: pointer;
-transition: background-color 0.3s ease;
+  padding: 10px 15px;
+  background-color: #FFC300; 
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  font-size: 16px;
+}
+
+.chatbot__send:hover {
+  background-color: #27251F; 
+  color: #FFC300;
 }
 
 /* Message Initial Fade-in */

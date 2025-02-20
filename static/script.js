@@ -1,6 +1,10 @@
-// Function to toggle chatbot visibility with animations
-
 let isFirstOpen = true; // Added FAQ flag
+const MAX_RECORDING_TIME = 10 * 1000; // 10 seconds limit
+const COOLDOWN_TIME = 5000; // 5 seconds cooldown
+let isRecording = false;
+let mediaRecorder;
+let audioChunks = [];
+let mediaStream;
 
 function toggleChat() {
     const popup = document.getElementById('chatPopup');
@@ -12,6 +16,11 @@ function toggleChat() {
 
         // Listen for transition end to hide the popup once
         popup.addEventListener('transitionend', handleFadeOut, { once: true });
+
+        const micButton = document.getElementById("record-btn");
+        if (micButton) {
+            micButton.addEventListener("click", toggleRecording);
+        }
     } else {
         // Remove any existing fade-out class
         popup.classList.remove('fade-out');
@@ -31,6 +40,99 @@ function toggleChat() {
             displayFAQs();
             isFirstOpen = false;
         }
+    }
+}
+
+async function toggleRecording() {
+    const micButton = document.getElementById("record-btn");
+
+    if (!isRecording) {
+        await startRecording();
+        micButton.style.backgroundColor = "red"; // Indicate recording
+    } else {
+        stopRecording();
+        micButton.style.backgroundColor = "#FFC300"; // Reset button color
+
+        // Disable the button during cooldown
+        micButton.disabled = true;
+        setTimeout(() => {
+            micButton.disabled = false;
+        }, COOLDOWN_TIME);
+    }
+}
+
+// Start recording audio using MediaRecorder API
+async function startRecording() {
+    try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(mediaStream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                audioChunks.push(event.data);
+            }
+        };
+
+        mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            await sendAudioToServer(audioBlob);
+            stopMicrophoneStream(); // Release microphone after recording
+        };
+
+        mediaRecorder.start();
+        isRecording = true;
+        console.log("Recording started...");
+
+        // Automatically stop recording after MAX_RECORDING_TIME
+        setTimeout(() => {
+            if (isRecording) {
+                stopRecording();
+                document.getElementById("record-btn").style.backgroundColor = "#FFC300"; // Reset button color
+            }
+        }, MAX_RECORDING_TIME);
+
+    } catch (error) {
+        alert("Error accessing microphone: " + error.message);
+    }
+}
+
+// Stop recording and send to server
+function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+        isRecording = false;
+        console.log("Recording stopped.");
+    }
+}
+
+// Release microphone after recording stops
+function stopMicrophoneStream() {
+    if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop()); // Stop all audio tracks
+    }
+}
+
+// Send audio file to server for transcription
+async function sendAudioToServer(audioBlob) {
+    const formData = new FormData();
+    formData.append("file", audioBlob, "audio.webm");
+
+    try {
+        const response = await fetch('/api/transcribe', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+        if (data.transcript) {
+            document.getElementById("chatInput").value = data.transcript;
+            sendMessage(); // Auto-send the transcribed message
+        } else {
+            console.error("Transcription failed:", data);
+        }
+    } catch (error) {
+        console.error("Error sending audio to server:", error);
     }
 }
 
@@ -320,6 +422,7 @@ function scrollToBottom() {
 document.addEventListener('click', function (event) {
     const popup = document.getElementById('chatPopup');
     const chatbotButton = document.querySelector('.chatbot__button');
+    const micButton = document.getElementById("record-btn");
 
     // If popup is not visible, do nothing
     if (!popup.classList.contains('show')) return;
@@ -331,5 +434,17 @@ document.addEventListener('click', function (event) {
 
         // Listen for transition end to hide the popup once
         popup.addEventListener('transitionend', handleFadeOut, { once: true });
+
+        // Remove microphone event listener when chat is closed
+        if (micButton.hasAttribute("listener")) {
+            micButton.removeEventListener("click", toggleRecording);
+            micButton.removeAttribute("listener");
+        }
+    } else {
+        // Add microphone event listener only if chat is open and not already added
+        if (!micButton.hasAttribute("listener")) {
+            micButton.addEventListener("click", toggleRecording);
+            micButton.setAttribute("listener", "true");
+        }
     }
 });
