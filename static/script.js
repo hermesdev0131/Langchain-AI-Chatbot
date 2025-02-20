@@ -267,50 +267,49 @@ function makeLinksClickable(text) {
     }
 }
 
-
-
-
 function typeWriterEffect(text, chatBody) {
-    const words = text.split(' '); // Split text into words
+    const formattedText = makeLinksClickable(text);
+    const plainText = text.replace(/https?:\/\/[^\s]+/g, "");
+
     const messageDiv = document.createElement('div');
     messageDiv.className = 'chatbot__message chatbot__message--bot';
+
     const iconContainer = document.createElement('div');
     iconContainer.className = 'chatbot__icon-container';
-    
-  
+
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
-    labelDiv.textContent = "AI Assistant";
-    
-    messageDiv.appendChild(iconContainer) 
+    labelDiv.textContent = "Shocker Assistant";      
+
     const textDiv = document.createElement('div');
     textDiv.className = 'chatbot__text';
-    labelDiv.textContent = 'Shocker Assistant';      
-    textDiv.innerHTML = ""; // Will be populated letter by letter                                                                                                                   
-    
+    textDiv.innerHTML = "";  // Start empty, will be filled dynamically
+
     const icon = document.createElement('img');
-    icon.src = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/wichita.sidearmsports.com/images/responsive_2023/logo_main.svg"
+    icon.src = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/wichita.sidearmsports.com/images/responsive_2023/logo_main.svg";
     icon.height = 30;
-    icon.weight  = 30;
+    icon.weight = 30;
     iconContainer.appendChild(icon);
+
+    messageDiv.appendChild(iconContainer);
     messageDiv.appendChild(labelDiv);
     messageDiv.appendChild(textDiv);
     chatBody.appendChild(messageDiv);
 
-    let formattedText = makeLinksClickable(text);  
     let i = 0;
+
     function type() {
-        if (i < text.length) {
-            textDiv.textContent += text.charAt(i);
+        if (i < plainText.length) {
+            textDiv.textContent += plainText.charAt(i);
             i++;
-            // Scroll to the bottom gradually as text is typed
             scrollToBottom();
-            setTimeout(type, 15); // Adjust typing speed here
+            setTimeout(type, 15);  // Adjust speed here if needed
         } else {
-            textDiv.innerHTML = formattedText; // Ensure final result includes links
-          }
+            textDiv.innerHTML = formattedText;
+        }
     }
-    type();
+
+    type();  // Start the effect
 }
 
 function scrollToBottom() {
