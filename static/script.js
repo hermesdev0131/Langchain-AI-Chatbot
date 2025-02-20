@@ -26,8 +26,8 @@ function toggleChat() {
         setTimeout(() => {
             document.getElementById('chatInput').focus();
         }, 300); // Match this timeout with the CSS transition duration
-         // Added FAQ display logic
-         if (isFirstOpen) {
+        // Added FAQ display logic
+        if (isFirstOpen) {
             displayFAQs();
             isFirstOpen = false;
         }
@@ -104,11 +104,11 @@ function toggleFullscreen() {
 
 function toggleColorChange() {
     let count = parseInt(localStorage.getItem('count'), 10) || 0;
-    if (count === 0 || count % 2 !== 0) { 
+    if (count === 0 || count % 2 !== 0) {
         document.getElementById('body').style.backgroundColor = '#3c3a3a';
         document.getElementById('hero').style.backgroundColor = '#FFC300';
         document.getElementById('features-section').style.backgroundColor = '#3c3a3a';
-        localStorage.setItem('count', count + 1); 
+        localStorage.setItem('count', count + 1);
     } else {
         document.getElementById('body').style.backgroundColor = 'white';
         document.getElementById('hero').style.backgroundColor = 'white';
@@ -117,10 +117,10 @@ function toggleColorChange() {
     }
 }
 
-document.getElementById("close-notification").addEventListener("click", function() {
+document.getElementById("close-notification").addEventListener("click", function () {
     document.getElementById("chatbot-notification").style.display = "none";
-  });
-  
+});
+
 
 // Handle Enter Key Press
 function handleEnterKey(event) {
@@ -135,15 +135,15 @@ async function sendMessage() {
     const message = input.value.trim();
     const chatBody = document.getElementById('chatBody');
     const thinkingDiv = document.getElementById('chatbot-thinking');
-  
+
     if (!message) return;
-  
+
     // Add user's message
     addMessage(message, 'user');
     // Clear input and show "Thinking..."
     input.value = '';
     thinkingDiv.classList.remove('hidden');
-  
+
     try {
         const response = await fetch('/', {
             method: 'POST',
@@ -151,12 +151,12 @@ async function sendMessage() {
             body: JSON.stringify({ userMessage: message }),
         });
         const data = await response.json();
-  
+
         // Hide "Thinking..."
         thinkingDiv.classList.add('hidden');
         if (data.response) {
             // Show response with typewriter effect
-            
+
             typeWriterEffect(data.response, chatBody);
         } else {
             addMessage('Sorry, something went wrong.', 'bot');
@@ -187,12 +187,12 @@ function addMessage(content, sender) {
     if (sender === 'user') {
         icon.src = "https://cdn-icons-png.flaticon.com/512/3870/3870822.png"
         icon.height = 30;
-        icon.weight  = 30;
+        icon.weight = 30;
     }
-    else{
+    else {
         icon.src = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/wichita.sidearmsports.com/images/responsive_2023/logo_main.svg"
         icon.height = 30;
-        icon.weight  = 30;
+        icon.weight = 30;
     }
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
@@ -204,9 +204,9 @@ function addMessage(content, sender) {
 
 
     if (sender === "bot") {
-      textDiv.innerHTML = makeLinksClickable(content);
+        textDiv.innerHTML = replaceLinks(content);
     } else {
-      textDiv.textContent = content;
+        textDiv.textContent = content;
     }
 
     iconContainer.appendChild(icon);
@@ -217,44 +217,43 @@ function addMessage(content, sender) {
     scrollToBottom();  // Automatically scroll to bottom
 }
 
-// Function to detect URLs in text and convert them into clickable links
-function makeLinksClickable(text) {
-    // This pattern looks for URLs starting with http(s):// or www.,
-    // followed by non-whitespace characters.
+function replaceLinks(text) {
+    // This regex finds URLs starting with http(s):// or www.
     const urlPattern = /((https?:\/\/|www\.)[^\s]+)/g;
   
     return text.replace(urlPattern, function (match) {
-      // Check if the URL ends with punctuation (like ., !, ?, etc.)
-      // We'll specifically look for .?!, etc. Adjust if you want to
-      // include or exclude other punctuation.
-      let trailingPunctuation = '';
-      const punctMatch = match.match(/[.,!?(){}\[\];:"'<>\s]+$/);
+        // Check for any trailing punctuation (like ., !, ?, etc.)
+        let trailingPunctuation = '';
+        const punctMatch = match.match(/[.,!?(){}\[\];:"'<>\s]+$/);
   
-      if (punctMatch) {
-        trailingPunctuation = punctMatch[0];         // e.g. "."
-        // Remove trailing punctuation from the URL for the link
-        match = match.slice(0, -trailingPunctuation.length);
-      }
+        if (punctMatch) {
+            trailingPunctuation = punctMatch[0];
+            match = match.slice(0, -trailingPunctuation.length);
+        }
   
-      // Construct the link. If it doesn't start with http, prepend it.
-      let link = match;
-      if (!match.startsWith('http')) {
-        link = 'http://' + match;
-      }
-
-
-        return `<a href="${link}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline">
-            <img src="static/icons/redirect-grad.png" alt="External Link" style="width: 20px; height: 20px; vertical-align: middle; color:blue;">
-            <img src="static/icons/open-eye-grad.png" alt="External Link" 
-                 style="width: 22px; height: 22px; vertical-align: middle; cursor: pointer;" 
-                 onclick="toggleLinkText(event, this, '${link}')">
-            <span class="hidden-link-text" style="display: none; margin-left: 5px;">${link}</span>
-        </a>${trailingPunctuation}`;
-
+        // Ensure the URL starts with http:// or https://
+        let link = match;
+        if (!link.startsWith('http')) {
+            link = 'http://' + link;
+        }
+  
+        // If the link is an image, return an <img> element instead of an <a> link
+        if (/\.(jpeg|jpg|png|gif|bmp|webp)$/i.test(link)) {
+            return `<img src="${link}" alt="Image" style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 5px;">${trailingPunctuation}`;
+        } else {
+            // Otherwise, return the usual clickable link with icons
+            return `<a href="${link}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline">
+                <img src="static/icons/redirect-grad.png" alt="External Link" style="width: 20px; height: 20px; vertical-align: middle;">
+                <img src="static/icons/open-eye-grad.png" alt="External Link" 
+                     style="width: 22px; height: 22px; vertical-align: middle; cursor: pointer;" 
+                     onclick="toggleLinkText(event, this, '${link}')">
+                <span class="hidden-link-text" style="display: none; margin-left: 5px;">${link}</span>
+            </a>${trailingPunctuation}`;
+        }
     });
-  }
+}
 
-  function toggleLinkText(event, imgElement, link) {
+function toggleLinkText(event, imgElement, link) {
     event.preventDefault(); // Prevents navigation when clicking the image
     const span = imgElement.nextElementSibling; // Get the span next to the image
 
@@ -268,7 +267,7 @@ function makeLinksClickable(text) {
 }
 
 function typeWriterEffect(text, chatBody) {
-    const formattedText = makeLinksClickable(text);
+    const formattedText = replaceLinks(text);
     const plainText = text.replace(/https?:\/\/[^\s]+/g, "");
 
     const messageDiv = document.createElement('div');
@@ -279,7 +278,7 @@ function typeWriterEffect(text, chatBody) {
 
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
-    labelDiv.textContent = "Shocker Assistant";      
+    labelDiv.textContent = "Shocker Assistant";
 
     const textDiv = document.createElement('div');
     textDiv.className = 'chatbot__text';
@@ -318,7 +317,7 @@ function scrollToBottom() {
 }
 
 // Attach the click event listener once when the script loads
-document.addEventListener('click', function(event) {
+document.addEventListener('click', function (event) {
     const popup = document.getElementById('chatPopup');
     const chatbotButton = document.querySelector('.chatbot__button');
 
