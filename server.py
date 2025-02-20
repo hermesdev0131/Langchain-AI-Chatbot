@@ -4,6 +4,7 @@ import time
 import tempfile
 import requests
 import openai
+import uvicorn
 from dotenv import load_dotenv
 from quart import Quart, request, jsonify, Response
 from langflow_api import run_flow
@@ -106,4 +107,8 @@ async def transcribe_audio():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    # Only run Uvicorn manually if NOT on Render
+    if "RENDER" not in os.environ:
+        port = int(os.environ.get("PORT", 8000))  # Default to 8000 for local dev
+        print(f"Running locally on port {port}...")
+        uvicorn.run("server:app", host="0.0.0.0", port=port, reload=True)
