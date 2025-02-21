@@ -429,7 +429,7 @@ background-blend-mode: overlay;
   display: inline-flex;
   align-items: center;
   font-size: 16px;
-  margin-right: 5px; /* Space between record and input */
+  margin-right: 10px; /* Space between record and input */
 }
 
 .chatbot__record-button:hover {
