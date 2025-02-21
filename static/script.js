@@ -404,7 +404,7 @@ function typeWriterEffect(text, chatBody) {
             textDiv.textContent += plainText.charAt(i);
             i++;
             scrollToBottom();
-            setTimeout(type, 15);  // Adjust speed here if needed
+            setTimeout(type, 5);  // Adjust speed here if needed
         } else {
             textDiv.innerHTML = formattedText;
         }
