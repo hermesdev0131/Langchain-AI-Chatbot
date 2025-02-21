@@ -429,7 +429,7 @@ background-blend-mode: overlay;
   display: inline-flex;
   align-items: center;
   font-size: 16px;
-  margin-right: 10px; /* Space between record and input */
+  margin-right: 5px; /* Space between record and input */
 }
 
 .chatbot__record-button:hover {
@@ -442,6 +442,7 @@ background-blend-mode: overlay;
   flex: 1;                  /* Let it grow/shrink as needed */
   max-width: 100%;         /* Constrain the maximum width */
   margin-right: 10px;       /* Space before the Send button */
+  
   padding: 10px;
   border: 1px solid #f9f9f9;
   border-radius: 5px;

@@ -276,6 +276,37 @@ function scrollToBottom() {
     chatBody.scrollTop = chatBody.scrollHeight;
 }
 
+// Attach the click event listener once when the script loads
+document.addEventListener('click', function (event) {
+    const popup = document.getElementById('chatPopup');
+    const chatbotButton = document.querySelector('.chatbot__button');
+    const micButton = document.getElementById("record-btn");
+
+    // If popup is not visible, do nothing
+    if (!popup.classList.contains('show')) return;
+
+    // Check if the clicked element is inside the popup or the chatbot button
+    if (!popup.contains(event.target) && !chatbotButton.contains(event.target)) {
+        // Start fade-out animation
+        popup.classList.add('fade-out');
+
+        // Listen for transition end to hide the popup once
+        popup.addEventListener('transitionend', handleFadeOut, { once: true });
+
+        // Remove microphone event listener when chat is closed
+        if (micButton.hasAttribute("listener")) {
+            micButton.removeEventListener("click", toggleRecording);
+            micButton.removeAttribute("listener");
+        }
+    } else {
+        // Add microphone event listener only if chat is open and not already added
+        if (!micButton.hasAttribute("listener")) {
+            micButton.addEventListener("click", toggleRecording);
+            micButton.setAttribute("listener", "true");
+        }
+    }
+});
+
 // Add user's or bot's message to the chat
 function addMessage(content, sender) {
     const chatBody = document.getElementById('chatBody');
@@ -409,7 +440,6 @@ function typeWriterEffect(text, chatBody) {
             textDiv.innerHTML = formattedText;
         }
     }
-
     type();  // Start the effect
 }
 
@@ -417,34 +447,3 @@ function scrollToBottom() {
     const chatBody = document.getElementById('chatBody');
     chatBody.scrollTop = chatBody.scrollHeight;
 }
-
-// Attach the click event listener once when the script loads
-document.addEventListener('click', function (event) {
-    const popup = document.getElementById('chatPopup');
-    const chatbotButton = document.querySelector('.chatbot__button');
-    const micButton = document.getElementById("record-btn");
-
-    // If popup is not visible, do nothing
-    if (!popup.classList.contains('show')) return;
-
-    // Check if the clicked element is inside the popup or the chatbot button
-    if (!popup.contains(event.target) && !chatbotButton.contains(event.target)) {
-        // Start fade-out animation
-        popup.classList.add('fade-out');
-
-        // Listen for transition end to hide the popup once
-        popup.addEventListener('transitionend', handleFadeOut, { once: true });
-
-        // Remove microphone event listener when chat is closed
-        if (micButton.hasAttribute("listener")) {
-            micButton.removeEventListener("click", toggleRecording);
-            micButton.removeAttribute("listener");
-        }
-    } else {
-        // Add microphone event listener only if chat is open and not already added
-        if (!micButton.hasAttribute("listener")) {
-            micButton.addEventListener("click", toggleRecording);
-            micButton.setAttribute("listener", "true");
-        }
-    }
-});
