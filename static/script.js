@@ -351,40 +351,140 @@ function addMessage(content, sender) {
 }
 
 function replaceLinks(text) {
-    // This regex finds URLs starting with http(s):// or www.
-    const urlPattern = /((https?:\/\/|www\.)[^\s]+)/g;
-  
-    return text.replace(urlPattern, function (match) {
-        // Check for any trailing punctuation (like ., !, ?, etc.)
-        let trailingPunctuation = '';
-        const punctMatch = match.match(/[.,!?(){}\[\];:"'<>\s]+$/);
-  
-        if (punctMatch) {
-            trailingPunctuation = punctMatch[0];
-            match = match.slice(0, -trailingPunctuation.length);
-        }
-  
-        // Ensure the URL starts with http:// or https://
-        let link = match;
-        if (!link.startsWith('http')) {
-            link = 'http://' + link;
-        }
-  
-        // If the link is an image, return an <img> element instead of an <a> link
-        if (/\.(jpeg|jpg|png|gif|bmp|webp)$/i.test(link)) {
-            return `<img src="${link}" alt="Image" style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 5px;">${trailingPunctuation}`;
+    const DEBUG = true; // Set to false to disable debugging logs
+
+    // Helper to determine the MIME type for video links
+    function getVideoType(link) {
+        if (/\.mp4$/i.test(link)) {
+            return "video/mp4";
+        } else if (/\.webm$/i.test(link)) {
+            return "video/webm";
+        } else if (/\.ogg$/i.test(link)) {
+            return "video/ogg";
         } else {
-            // Otherwise, return the usual clickable link with icons
-            return `<a href="${link}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline">
-                <img src="static/icons/redirect-grad.png" alt="External Link" style="width: 20px; height: 20px; vertical-align: middle;">
-                <img src="static/icons/open-eye-grad.png" alt="External Link" 
-                     style="width: 22px; height: 22px; vertical-align: middle; cursor: pointer;" 
-                     onclick="toggleLinkText(event, this, '${link}')">
-                <span class="hidden-link-text" style="display: none; margin-left: 5px;">${link}</span>
-            </a>${trailingPunctuation}`;
+            return "";
         }
+    }
+
+    // Helper to extract a YouTube video ID from a URL
+    function getYoutubeVideoId(url) {
+        // Matches youtube.com (watch?v= or embed/) and youtu.be formats.
+        const regex = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+        const match = url.match(regex);
+        if (DEBUG) {
+            console.log("getYoutubeVideoId - URL:", url, "ID:", match ? match[1] : "none");
+        }
+        return match ? match[1] : null;
+    }
+
+    // --- Step 1: Process markdown links ---
+    // This regex matches markdown links of the form [text](URL)
+    text = text.replace(/\[([^\]]+)\]\(([\s\S]+?)\)/g, function(match, linkText, linkContent) {
+        let url = linkContent.trim();
+
+        // If linkContent is already an HTML anchor tag, extract the href attribute.
+        const anchorMatch = url.match(/<a\s+[^>]*href="([^"]+)"[^>]*>/i);
+        if (anchorMatch) {
+            url = anchorMatch[1];
+            if (DEBUG) {
+                console.log("Extracted URL from anchor tag:", url);
+            }
+        }
+
+        // Check for YouTube link
+        const youtubeVideoId = getYoutubeVideoId(url);
+        if (youtubeVideoId) {
+            const iframeHTML = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${youtubeVideoId}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="max-width: 100%; border-radius: 8px; margin-top: 5px;"></iframe>`;
+            if (DEBUG) {
+                console.log("Markdown - Detected YouTube link:", url, "Embedding as iframe:", iframeHTML);
+            }
+            return iframeHTML;
+        }
+
+        // Check if URL is a video file
+        if (/\.(mp4|webm|ogg)$/i.test(url)) {
+            const videoHTML = `<video controls style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 5px;">
+                                    <source src="${url}" type="${getVideoType(url)}">
+                                    Your browser does not support the video tag.
+                               </video>`;
+            if (DEBUG) {
+                console.log("Markdown - Detected video file:", url, "Embedding as video:", videoHTML);
+            }
+            return videoHTML;
+        }
+
+        if (DEBUG) {
+            console.log("Markdown - No video detected for URL:", url);
+        }
+        // For non-video URLs, return the original markdown link unchanged.
+        return match;
     });
+
+    // --- Step 2: Process raw URLs in plain text segments only ---
+    // Split the text into parts: HTML tags and plain text.
+    const parts = text.split(/(<[^>]+>)/);
+    for (let i = 0; i < parts.length; i++) {
+        // Process only parts that are not HTML tags.
+        if (!parts[i].startsWith("<")) {
+            parts[i] = parts[i].replace(/((https?:\/\/|www\.)[^\s]+)/g, function(match) {
+                // Remove trailing punctuation if present.
+                let trailingPunctuation = '';
+                const punctMatch = match.match(/[.,!?(){}\[\];:"'<>\s]+$/);
+                if (punctMatch) {
+                    trailingPunctuation = punctMatch[0];
+                    match = match.slice(0, -trailingPunctuation.length);
+                }
+
+                let link = match;
+                if (!link.startsWith('http')) {
+                    link = 'http://' + link;
+                }
+
+                // Check for YouTube links
+                const youtubeVideoId = getYoutubeVideoId(link);
+                if (youtubeVideoId) {
+                    const iframeHTML = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${youtubeVideoId}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="max-width: 100%; border-radius: 8px; margin-top: 5px;"></iframe>${trailingPunctuation}`;
+                    if (DEBUG) {
+                        console.log("Raw URL - Detected YouTube link:", link, "Embedding as iframe:", iframeHTML);
+                    }
+                    return iframeHTML;
+                }
+                // If the link is an image, return an <img> element.
+                if (/\.(jpeg|jpg|png|gif|bmp|webp)$/i.test(link)) {
+                    const imgHTML = `<img src="${link}" alt="Image" style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 5px;">${trailingPunctuation}`;
+                    if (DEBUG) {
+                        console.log("Raw URL - Detected image link:", link, "Embedding as image:", imgHTML);
+                    }
+                    return imgHTML;
+                }
+                // If the link is a video file, return a <video> element.
+                if (/\.(mp4|webm|ogg)$/i.test(link)) {
+                    const videoHTML = `<video controls style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 5px;">
+                                            <source src="${link}" type="${getVideoType(link)}">
+                                            Your browser does not support the video tag.
+                                       </video>${trailingPunctuation}`;
+                    if (DEBUG) {
+                        console.log("Raw URL - Detected video file:", link, "Embedding as video:", videoHTML);
+                    }
+                    return videoHTML;
+                }
+                // Otherwise, return the usual clickable link with icons.
+                const anchorHTML = `<a href="${link}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline">
+                                        <img src="static/icons/redirect-grad.png" alt="External Link" style="width: 20px; height: 20px; vertical-align: middle;">
+                                        <img src="static/icons/open-eye-grad.png" alt="External Link" style="width: 22px; height: 22px; vertical-align: middle; cursor: pointer;" onclick="toggleLinkText(event, this, '${link}')">
+                                        <span class="hidden-link-text" style="display: none; margin-left: 5px;">${link}</span>
+                                    </a>${trailingPunctuation}`;
+                if (DEBUG) {
+                    console.log("Raw URL - No video or image detected for link:", link, "Returning anchor:", anchorHTML);
+                }
+                return anchorHTML;
+            });
+        }
+    }
+
+    return parts.join("");
 }
+
 
 function toggleLinkText(event, imgElement, link) {
     event.preventDefault(); // Prevents navigation when clicking the image
