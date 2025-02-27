@@ -35,6 +35,10 @@ function toggleChat() {
         setTimeout(() => {
             document.getElementById('chatInput').focus();
         }, 300); // Match this timeout with the CSS transition duration
+
+        // Load chat history when the chat is opened
+        loadChatHistory();
+
         // Added FAQ display logic
         if (isFirstOpen) {
             displayFAQs();
@@ -243,6 +247,9 @@ async function sendMessage() {
     // Add user's message
     addMessage(message, 'user');
     // Clear input and show "Thinking..."
+    // Save the message to sessionStorage
+    saveChatHistory(message, 'user');
+
     input.value = '';
     thinkingDiv.classList.remove('hidden');
 
@@ -258,15 +265,23 @@ async function sendMessage() {
         thinkingDiv.classList.add('hidden');
         if (data.response) {
             // Show response with typewriter effect
-
             typeWriterEffect(data.response, chatBody);
+            
+            // Save the message to sessionStorage
+            saveChatHistory(data.response, 'bot');
         } else {
             addMessage('Sorry, something went wrong.', 'bot');
+        
+            // Save the message to sessionStorage
+            saveChatHistory('Sorry, something went wrong.', 'bot');
         }
     } catch (err) {
         // Hide "Thinking..." and show error
         thinkingDiv.classList.add('hidden');
         addMessage('Error: ' + err.message, 'bot');
+        
+        // Save the message to sessionStorage
+        saveChatHistory('Error: ' + err.message, 'bot');
     }
 }
 
@@ -275,37 +290,6 @@ function scrollToBottom() {
     const chatBody = document.getElementById('chatBody');
     chatBody.scrollTop = chatBody.scrollHeight;
 }
-
-// Attach the click event listener once when the script loads
-document.addEventListener('click', function (event) {
-    const popup = document.getElementById('chatPopup');
-    const chatbotButton = document.querySelector('.chatbot__button');
-    const micButton = document.getElementById("record-btn");
-
-    // If popup is not visible, do nothing
-    if (!popup.classList.contains('show')) return;
-
-    // Check if the clicked element is inside the popup or the chatbot button
-    if (!popup.contains(event.target) && !chatbotButton.contains(event.target)) {
-        // Start fade-out animation
-        popup.classList.add('fade-out');
-
-        // Listen for transition end to hide the popup once
-        popup.addEventListener('transitionend', handleFadeOut, { once: true });
-
-        // Remove microphone event listener when chat is closed
-        if (micButton.hasAttribute("listener")) {
-            micButton.removeEventListener("click", toggleRecording);
-            micButton.removeAttribute("listener");
-        }
-    } else {
-        // Add microphone event listener only if chat is open and not already added
-        if (!micButton.hasAttribute("listener")) {
-            micButton.addEventListener("click", toggleRecording);
-            micButton.setAttribute("listener", "true");
-        }
-    }
-});
 
 // Add user's or bot's message to the chat
 function addMessage(content, sender) {
@@ -529,10 +513,61 @@ function typeWriterEffect(text, chatBody) {
             textDiv.innerHTML = formattedText;
         }
     }
+
     type();  // Start the effect
 }
 
 function scrollToBottom() {
     const chatBody = document.getElementById('chatBody');
     chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+// Attach the click event listener once when the script loads
+document.addEventListener('click', function (event) {
+    const popup = document.getElementById('chatPopup');
+    const chatbotButton = document.querySelector('.chatbot__button');
+    const micButton = document.getElementById("record-btn");
+
+    // If popup is not visible, do nothing
+    if (!popup.classList.contains('show')) return;
+
+    // Check if the clicked element is inside the popup or the chatbot button
+    if (!popup.contains(event.target) && !chatbotButton.contains(event.target)) {
+        // Start fade-out animation
+        popup.classList.add('fade-out');
+
+        // Listen for transition end to hide the popup once
+        popup.addEventListener('transitionend', handleFadeOut, { once: true });
+
+        // Remove microphone event listener when chat is closed
+        if (micButton.hasAttribute("listener")) {
+            micButton.removeEventListener("click", toggleRecording);
+            micButton.removeAttribute("listener");
+        }
+    } else {
+        // Add microphone event listener only if chat is open and not already added
+        if (!micButton.hasAttribute("listener")) {
+            micButton.addEventListener("click", toggleRecording);
+            micButton.setAttribute("listener", "true");
+        }
+    }
+});
+
+
+
+// Function to save chat history to sessionStorage
+function saveChatHistory(message, sender) {
+    let chatHistory = JSON.parse(sessionStorage.getItem('chatHistory')) || [];
+    chatHistory.push({ content: message, sender: sender });
+    sessionStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+}
+
+// Function to load chat history from sessionStorage
+function loadChatHistory() {
+    const chatHistory = JSON.parse(sessionStorage.getItem('chatHistory')) || [];
+    const chatBody = document.getElementById('chatBody');
+
+    chatHistory.forEach(message => {
+        addMessage(message.content, message.sender);
+    });
 }
