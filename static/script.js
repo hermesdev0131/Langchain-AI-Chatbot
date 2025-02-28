@@ -276,11 +276,10 @@ function toggleFullscreen() {
   if (isFullscreen) {
     // Automatically focus on the input box when entering fullscreen
     document.getElementById('chatInput').focus();
-  } else {
-    // Optionally, you can add actions when exiting fullscreen
   }
 }
 
+// Toggle color change of various sections
 function toggleColorChange() {
   let count = parseInt(localStorage.getItem('count'), 10) || 0;
   if (count === 0 || count % 2 !== 0) {
@@ -319,7 +318,6 @@ async function sendMessage() {
 
   // Add user's message
   addMessage(message, 'user');
-  // Clear input and show "Thinking..."
   // Save the message to sessionStorage
   saveChatHistory(message, 'user');
 
@@ -358,7 +356,7 @@ async function sendMessage() {
   }
 }
 
-//Scroll to Bottom Function
+// Scroll to Bottom Function
 function scrollToBottom() {
   const chatBody = document.getElementById('chatBody');
   chatBody.scrollTop = chatBody.scrollHeight;
@@ -375,12 +373,12 @@ function addMessage(content, sender) {
 
   const icon = document.createElement('img');
   if (sender === 'user') {
-    icon.src = "https://cdn-icons-png.flaticon.com/512/3870/3870822.png"
+    icon.src = "https://cdn-icons-png.flaticon.com/512/3870/3870822.png";
     icon.height = 30;
     icon.weight = 30;
   }
   else {
-    icon.src = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/wichita.sidearmsports.com/images/responsive_2023/logo_main.svg"
+    icon.src = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/wichita.sidearmsports.com/images/responsive_2023/logo_main.svg";
     icon.height = 30;
     icon.weight = 30;
   }
@@ -390,9 +388,6 @@ function addMessage(content, sender) {
 
   const textDiv = document.createElement('div');
   textDiv.className = 'chatbot__text';
-  textDiv.textContent = content;
-
-
   if (sender === "bot") {
     textDiv.innerHTML = replaceLinks(content);
   } else {
@@ -400,7 +395,7 @@ function addMessage(content, sender) {
   }
 
   iconContainer.appendChild(icon);
-  messageDiv.appendChild(iconContainer)
+  messageDiv.appendChild(iconContainer);
   messageDiv.appendChild(labelDiv);
   messageDiv.appendChild(textDiv);
   chatBody.appendChild(messageDiv);
@@ -408,128 +403,115 @@ function addMessage(content, sender) {
 }
 
 function replaceLinks(text) {
-  const DEBUG = true; // Set to false to disable debugging logs
-
-  text = text.replace(/\(\s*((https?:\/\/|www\.)[^\s]+)/g, '$1');
-
-  // Helper to determine the MIME type for video links
-  function getVideoType(link) {
-    if (/\.mp4$/i.test(link)) {
-      return "video/mp4";
-    } else if (/\.webm$/i.test(link)) {
-      return "video/webm";
-    } else if (/\.ogg$/i.test(link)) {
-      return "video/ogg";
-    } else {
-      return "";
-    }
+  if (!text || typeof text !== 'string' || text.trim() === "") {
+    console.error("replaceLinks received empty or invalid text.");
+    return "Please try again";
   }
+  try {
+    const DEBUG = true; // Set to false to disable debugging logs
 
-  // Helper to extract a YouTube video ID from a URL
-  function getYoutubeVideoId(url) {
-    // Matches youtube.com (watch?v= or embed/) and youtu.be formats.
-    const regex = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-    const match = url.match(regex);
-    if (DEBUG) {
-      console.log("getYoutubeVideoId - URL:", url, "ID:", match ? match[1] : "none");
-    }
-    return match ? match[1] : null;
-  }
+    // Initial cleanup: remove stray opening parenthesis and whitespace before URLs
+    text = text.replace(/\(\s*((https?:\/\/|www\.)[^\s]+)/g, '$1');
 
-  // --- Step 1: Process markdown links ---
-  text = text.replace(/\[([^\]]+)\]\(([\s\S]+?)\)/g, function (match, linkText, linkContent) {
-    let url = linkContent.trim();
-
-    // If linkContent is already an HTML anchor tag, extract the href attribute.
-    const anchorMatch = url.match(/<a\s+[^>]*href="([^"]+)"[^>]*>/i);
-    if (anchorMatch) {
-      url = anchorMatch[1];
-      if (DEBUG) {
-        console.log("Extracted URL from anchor tag:", url);
+    // Helper to determine the MIME type for video links
+    function getVideoType(link) {
+      if (/\.mp4$/i.test(link)) {
+        return "video/mp4";
+      } else if (/\.webm$/i.test(link)) {
+        return "video/webm";
+      } else if (/\.ogg$/i.test(link)) {
+        return "video/ogg";
+      } else {
+        return "";
       }
     }
 
-    // Remove any wrapping parentheses and trailing punctuation from the URL
-    url = url.trim().replace(/^\(|\)$/g, '').replace(/[\)\.,!?]+$/g, '');
-
-    // Check for YouTube link
-    const youtubeVideoId = getYoutubeVideoId(url);
-    if (youtubeVideoId) {
-      const iframeHTML = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${youtubeVideoId}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="max-width: 100%; border-radius: 8px; margin-top: 5px;"></iframe>`;
+    // Helper to extract a YouTube video ID from a URL
+    function getYoutubeVideoId(url) {
+      const regex = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+      const match = url.match(regex);
       if (DEBUG) {
-        console.log("Markdown - Detected YouTube link:", url, "Embedding as iframe:", iframeHTML);
+        console.log("getYoutubeVideoId - URL:", url, "ID:", match ? match[1] : "none");
       }
-      return iframeHTML;
+      return match ? match[1] : null;
     }
 
-    // Check if URL is a video file
-    if (/\.(mp4|webm|ogg)$/i.test(url)) {
-      const videoHTML = `<video controls style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 5px;">
+    // --- Step 1: Process markdown links ---
+    text = text.replace(/\[([^\]]+)\]\(([\s\S]+?)\)/g, function (match, linkText, linkContent) {
+      let url = linkContent.trim();
+      const anchorMatch = url.match(/<a\s+[^>]*href="([^"]+)"[^>]*>/i);
+      if (anchorMatch) {
+        url = anchorMatch[1];
+        if (DEBUG) {
+          console.log("Extracted URL from anchor tag:", url);
+        }
+      }
+      url = url.trim().replace(/^\(|\)$/g, '').replace(/[\)\.,!?]+$/g, '');
+      const youtubeVideoId = getYoutubeVideoId(url);
+      if (youtubeVideoId) {
+        const iframeHTML = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${youtubeVideoId}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="max-width: 100%; border-radius: 8px; margin-top: 5px;"></iframe>`;
+        if (DEBUG) {
+          console.log("Markdown - Detected YouTube link:", url, "Embedding as iframe:", iframeHTML);
+        }
+        return iframeHTML;
+      }
+      if (/\.(mp4|webm|ogg)$/i.test(url)) {
+        const videoHTML = `<video controls style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 5px;">
                                     <source src="${url}" type="${getVideoType(url)}">
                                     Your browser does not support the video tag.
                                </video>`;
-      if (DEBUG) {
-        console.log("Markdown - Detected video file:", url, "Embedding as video:", videoHTML);
+        if (DEBUG) {
+          console.log("Markdown - Detected video file:", url, "Embedding as video:", videoHTML);
+        }
+        return videoHTML;
       }
-      return videoHTML;
-    }
+      if (DEBUG) {
+        console.log("Markdown - No video detected for URL:", url);
+      }
+      return match;
+    });
 
-    if (DEBUG) {
-      console.log("Markdown - No video detected for URL:", url);
-    }
-    // For non-video URLs, return the original markdown link unchanged.
-    return match;
-  });
-
-  // --- Step 2: Process raw URLs in plain text segments only ---
-  const parts = text.split(/(<[^>]+>)/);
-  for (let i = 0; i < parts.length; i++) {
-    // Process only parts that are not HTML tags.
-    if (!parts[i].startsWith("<")) {
-      // Process raw URLs in plain text segments only
-      parts[i] = parts[i].replace(/((https?:\/\/|www\.)[^\s]+)/g, function (match) {
-        // Trim whitespace, then remove any left parentheses at the start...
-        match = match.trim().replace(/^\(+/, '');
-        // ...and remove trailing punctuation like right parentheses, periods, commas, etc.
-        match = match.replace(/[\)\.,!?]+$/g, '');
-
-        let link = match;
-        if (!link.startsWith('http')) {
-          link = 'http://' + link;
-        }
-
-        // Check for YouTube links
-        const youtubeVideoId = getYoutubeVideoId(link);
-        if (youtubeVideoId) {
-          const iframeHTML = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${youtubeVideoId}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="max-width: 100%; border-radius: 8px; margin-top: 5px;"></iframe>`;
-          return iframeHTML;
-        }
-        // If the link is an image, return an <img> element.
-        if (/\.(jpeg|jpg|png|gif|bmp|webp)$/i.test(link)) {
-          const imgHTML = `<img src="${link}" alt="Image" style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 5px;">`;
-          return imgHTML;
-        }
-        // If the link is a video file, return a <video> element.
-        if (/\.(mp4|webm|ogg)$/i.test(link)) {
-          const videoHTML = `<video controls style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 5px;">
+    // --- Step 2: Process raw URLs in plain text segments only ---
+    const parts = text.split(/(<[^>]+>)/);
+    for (let i = 0; i < parts.length; i++) {
+      if (!parts[i].startsWith("<")) {
+        parts[i] = parts[i].replace(/((https?:\/\/|www\.)[^\s]+)/g, function (match) {
+          match = match.trim().replace(/^\(+/, '');
+          match = match.replace(/[\)\.,!?]+$/g, '');
+          let link = match;
+          if (!link.startsWith('http')) {
+            link = 'http://' + link;
+          }
+          const youtubeVideoId = getYoutubeVideoId(link);
+          if (youtubeVideoId) {
+            const iframeHTML = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${youtubeVideoId}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="max-width: 100%; border-radius: 8px; margin-top: 5px;"></iframe>`;
+            return iframeHTML;
+          }
+          if (/\.(jpeg|jpg|png|gif|bmp|webp)$/i.test(link)) {
+            const imgHTML = `<img src="${link}" alt="Image" style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 5px;">`;
+            return imgHTML;
+          }
+          if (/\.(mp4|webm|ogg)$/i.test(link)) {
+            const videoHTML = `<video controls style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 5px;">
                                 <source src="${link}" type="${getVideoType(link)}">
                                 Your browser does not support the video tag.
                            </video>`;
-          return videoHTML;
-        }
-        // Otherwise, return a clickable link.
-        const anchorHTML = `<a href="${link}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline">
+            return videoHTML;
+          }
+          const anchorHTML = `<a href="${link}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline">
                             <img src="static/icons/redirect-grad.png" alt="External Link" style="width: 20px; height: 20px; vertical-align: middle;">
                             <img src="static/icons/open-eye-grad.png" alt="External Link" style="width: 22px; height: 22px; vertical-align: middle; cursor: pointer;" onclick="toggleLinkText(event, this, '${link}')">
                             <span class="hidden-link-text" style="display: none; margin-left: 5px;">${link}</span>
                         </a>`;
-        return anchorHTML;
-      });
-
+          return anchorHTML;
+        });
+      }
     }
+    return parts.join("");
+  } catch (error) {
+    console.error("Error in replaceLinks:", error);
+    return "Please try again";
   }
-
-  return parts.join("");
 }
 
 function toggleLinkText(event, imgElement, link) {
@@ -590,12 +572,6 @@ function typeWriterEffect(text, chatBody) {
   type();  // Start the effect
 }
 
-function scrollToBottom() {
-  const chatBody = document.getElementById('chatBody');
-  chatBody.scrollTop = chatBody.scrollHeight;
-}
-
-// Attach the click event listener once when the script loads
 document.addEventListener('click', function (event) {
   const popup = document.getElementById('chatPopup');
   const chatbotButton = document.querySelector('.chatbot__button');
@@ -625,8 +601,6 @@ document.addEventListener('click', function (event) {
     }
   }
 });
-
-
 
 // Function to save chat history to sessionStorage
 function saveChatHistory(message, sender) {
