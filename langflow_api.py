@@ -1,9 +1,10 @@
 import aiohttp
 from typing import Optional
 from asyncio import TimeoutError
+from os import getenv
 
-BASE_API_URL = "https://langflow-te0k.onrender.com"
-FLOW_ID = "62283816-fdec-48d4-a1f2-5205cbbaf3ee"
+BASE_API_URL = getenv("LANGFLOW_BASE_API_URL")
+FLOW_ID = getenv("FLOW_ID")
 
 async def run_flow(
     message: str,

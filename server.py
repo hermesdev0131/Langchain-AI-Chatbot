@@ -14,7 +14,7 @@ import asyncio
 load_dotenv()
 RENDER_LANGFLOW_API_KEY = os.getenv("RENDER_LANGFLOW_API_KEY")
 ZILLIZ_AUTH_TOKEN = os.getenv("ZILLIZ_AUTH_TOKEN")
-ZILLIZ_URL = "https://in03-30505f4d990015f.serverless.gcp-us-west1.cloud.zilliz.com/v2/vectordb/entities/query"
+ZILLIZ_URL = os.getenv("ZILLIZ_URL")
 client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
 )
