@@ -761,3 +761,31 @@ text-align: right;
           rotate(-45deg);
   }
 }
+
+/* Modern styling for the Select2 dropdown */
+.select2-container--default .select2-selection--single {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  height: 40px;
+  background-color: #f9f9f9;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  padding: 5px 10px;
+}
+.select2-container--default .select2-selection--single:hover {
+  border-color: #999;
+}
+.select2-container--default .select2-selection--single:focus,
+.select2-container--default .select2-selection--single:active {
+  border-color: #66afe9;
+  box-shadow: 0 0 8px rgba(102, 175, 233, 0.6);
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  line-height: 28px;
+  font-size: 16px;
+  color: #333;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+  height: 40px;
+  right: 10px;
+}
