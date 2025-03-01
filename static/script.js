@@ -179,16 +179,28 @@ async function displayFAQs() {
     // Create a container for the FAQ questions
     const faqQuestionsContainer = document.createElement('div');
     faqQuestionsContainer.id = 'faq-questions';
+
     faqQuestions.forEach(questionObj => {
       const question = typeof questionObj === 'string' ? questionObj : questionObj.question;
       const faqDiv = document.createElement('div');
       faqDiv.className = 'faq-question';
-      faqDiv.innerHTML = `
-        <div class="faq-icon">
-          <i class="fas fa-comment-dots"></i>
-        </div>
-        <div class="faq-text" onclick="sendFAQ('${question}')">${question}</div>
-      `;
+
+      // Attach event listener to the entire FAQ container
+      faqDiv.addEventListener('click', (event) => {
+        event.stopPropagation();
+        sendFAQ(question);
+      });
+
+      const iconDiv = document.createElement('div');
+      iconDiv.className = 'faq-icon';
+      iconDiv.innerHTML = '<i class="fas fa-comment-dots"></i>';
+      faqDiv.appendChild(iconDiv);
+
+      const textDiv = document.createElement('div');
+      textDiv.className = 'faq-text';
+      textDiv.textContent = question;
+      faqDiv.appendChild(textDiv);
+
       faqQuestionsContainer.appendChild(faqDiv);
     });
     faqContainer.appendChild(faqQuestionsContainer);
@@ -219,28 +231,33 @@ async function switchFaqLanguage() {
     }
     const translatedFaqs = await response.json();
 
-    // Build new HTML for FAQ questions only.
-    let newFaqQuestionsHtml = '';
-    translatedFaqs.forEach(faq => {
-      // Escape single quotes to avoid breaking the onclick handler.
-      const escapedFaq = faq.replace(/'/g, "\\'");
-      newFaqQuestionsHtml += `
-        <div class="faq-question">
-          <div class="faq-icon">
-            <i class="fas fa-comment-dots"></i>
-          </div>
-          <div class="faq-text" onclick="sendFAQ('${escapedFaq}')">${faq}</div>
-        </div>
-      `;
-    });
-
-    // Update only the FAQ questions container.
+    // Update the FAQ questions container using programmatic event listeners
     const faqQuestionsContainer = document.getElementById("faq-questions");
-    if (faqQuestionsContainer) {
-      faqQuestionsContainer.innerHTML = newFaqQuestionsHtml;
-    } else {
-      console.warn("FAQ questions container not found!");
-    }
+    // Clear the container first
+    faqQuestionsContainer.innerHTML = '';
+
+    translatedFaqs.forEach(faq => {
+      const faqDiv = document.createElement('div');
+      faqDiv.className = 'faq-question';
+
+      // Attach click event on the full container
+      faqDiv.addEventListener('click', (event) => {
+        event.stopPropagation();
+        sendFAQ(faq);
+      });
+
+      const iconDiv = document.createElement('div');
+      iconDiv.className = 'faq-icon';
+      iconDiv.innerHTML = '<i class="fas fa-comment-dots"></i>';
+      faqDiv.appendChild(iconDiv);
+
+      const textDiv = document.createElement('div');
+      textDiv.className = 'faq-text';
+      textDiv.textContent = faq;
+      faqDiv.appendChild(textDiv);
+
+      faqQuestionsContainer.appendChild(faqDiv);
+    });
   } catch (error) {
     console.error("Error switching FAQ language:", error);
   }
