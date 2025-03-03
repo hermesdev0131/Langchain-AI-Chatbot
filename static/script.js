@@ -163,15 +163,16 @@ async function displayFAQs() {
       <select id="faq-language" onchange="switchFaqLanguage()">
         <option value="en" selected>English</option>
         <option value="es">Español</option>
+        <option value="vi">Tiếng Việt</option>
         <option value="fr">Français</option>
         <option value="de">Deutsch</option>
         <option value="zh">中文</option>
         <option value="ja">日本語</option>
         <option value="ru">Русский</option>
         <option value="ar">العربية</option>
-        <option value="vi">Tiếng Việt</option>
         <option value="ko">한국어</option>
         <option value="hi">हिन्दी</option>
+        <option value="bn">বাংলা</option>
       </select>
     `;
     faqContainer.appendChild(languageDiv);
