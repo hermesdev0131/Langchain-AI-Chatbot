@@ -3,19 +3,21 @@ import os
 import time
 import tempfile
 import requests
-import openai
+from openai import OpenAI
 import uvicorn
 from dotenv import load_dotenv
 from quart import Quart, request, jsonify, Response
 from langflow_api import run_flow
+import asyncio
 
 # Load environment variables
 load_dotenv()
 RENDER_LANGFLOW_API_KEY = os.getenv("RENDER_LANGFLOW_API_KEY")
 ZILLIZ_AUTH_TOKEN = os.getenv("ZILLIZ_AUTH_TOKEN")
-ZILLIZ_URL = "https://in03-30505f4d990015f.serverless.gcp-us-west1.cloud.zilliz.com/v2/vectordb/entities/query"
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
+ZILLIZ_URL = os.getenv("ZILLIZ_URL")
+client = OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
+)
 app = Quart(__name__, static_folder='static')
 
 # Serve the static index.html
@@ -58,6 +60,37 @@ async def get_faqs():
     faqs = [record.get("faq") for record in data.get("data", []) if record.get("faq")]
     return jsonify(faqs)
 
+async def translate_faq_item(faq, target_lang):
+    prompt = f"Translate the following text to {target_lang}:\n\n{faq}\n\n. Do not include anything but the translation"
+    try:
+        # Run the synchronous call in a separate thread.
+        response = await asyncio.to_thread(
+            client.chat.completions.create,
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.5
+        )
+        translation = response.choices[0].message.content.strip()
+        return translation
+    except Exception as e:
+        print(f"Translation failed for FAQ: {faq}, error: {e}")
+        return faq  # Fallback to original FAQ
+
+@app.route('/api/faqs/translate', methods=['GET'])
+async def translate_faqs():
+    target_lang = request.args.get('lang', 'en').lower()
+    data = await query_faqs()
+    faq_questions = [record.get("faq") for record in data.get("data", []) if record.get("faq")]
+
+    # If target language is English, return original FAQs
+    if target_lang == 'en':
+        return jsonify(faq_questions)
+
+    # Create tasks for all translation requests concurrently.
+    tasks = [translate_faq_item(faq, target_lang) for faq in faq_questions]
+    translated_faqs = await asyncio.gather(*tasks)
+    return jsonify(translated_faqs)
+
 # Rate limiting & audio file constraints
 RATE_LIMIT = 5  # Max requests per minute
 RATE_WINDOW = 60  # Rate limit time window (seconds)
@@ -94,7 +127,7 @@ async def transcribe_audio():
 
         # Transcribe with OpenAI Whisper
         with open(temp_path, "rb") as audio:
-            transcript = openai.audio.transcriptions.create(
+            transcript = client.audio.transcriptions.create(
                 model="whisper-1",
                 file=audio
             )
