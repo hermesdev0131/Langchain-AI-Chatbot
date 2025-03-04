@@ -1,14 +1,17 @@
-import aiofiles
 import os
 import time
 import tempfile
 import requests
 from openai import OpenAI
-import uvicorn
+from fastapi import FastAPI, Request, UploadFile, File, HTTPException
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
-from quart import Quart, request, jsonify, Response
 from langflow_api import run_flow
 import asyncio
+import aiofiles
+import uvicorn
 
 # Load environment variables
 load_dotenv()
@@ -18,27 +21,40 @@ ZILLIZ_URL = os.getenv("ZILLIZ_URL")
 client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
 )
-app = Quart(__name__, static_folder='static')
+app = FastAPI()
+
+# Allow CORS for all origins (adjust as needed)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Mount the static files directory
+static_folder = os.path.join(os.path.dirname(__file__), "static")
+app.mount("/static", StaticFiles(directory=static_folder), name="static")
 
 # Serve the static index.html
-@app.route('/', methods=['GET'])
+@app.get("/", response_class=HTMLResponse)
 async def serve_index():
-    file_path = os.path.join(app.static_folder, "index.html")
+    file_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
     try:
         async with aiofiles.open(file_path, mode='r', encoding='utf-8') as f:
             content = await f.read()
-        return Response(content, mimetype='text/html')
+        return HTMLResponse(content)
     except FileNotFoundError:
-        return Response("index.html not found", status=404)
+        raise HTTPException(status_code=404, detail="index.html not found")
 
 # Handle POST requests from the front-end
-@app.route('/', methods=['POST'])
-async def handle_post():
-    data = await request.get_json()
+@app.post("/")
+async def handle_post(request: Request):
+    data = await request.json()
     user_message = data.get('userMessage', 'No message provided')
 
     response = await run_flow(user_message, api_key=RENDER_LANGFLOW_API_KEY)
-    return jsonify({"response": response})
+    return JSONResponse({"response": response})
 
 # Fetch FAQs from Zilliz
 async def query_faqs():
@@ -54,11 +70,11 @@ async def query_faqs():
     response = requests.post(ZILLIZ_URL, json=payload, headers=headers)
     return response.json()
 
-@app.route('/api/faqs', methods=['GET'])
+@app.get("/api/faqs")
 async def get_faqs():
     data = await query_faqs()
     faqs = [record.get("faq") for record in data.get("data", []) if record.get("faq")]
-    return jsonify(faqs)
+    return JSONResponse(faqs)
 
 async def translate_faq_item(faq, target_lang):
     prompt = f"Translate the following text to {target_lang}:\n\n{faq}\n\n. Do not include anything but the translation"
@@ -68,7 +84,7 @@ async def translate_faq_item(faq, target_lang):
             client.chat.completions.create,
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.5
+            temperature=0.
         )
         translation = response.choices[0].message.content.strip()
         return translation
@@ -76,20 +92,20 @@ async def translate_faq_item(faq, target_lang):
         print(f"Translation failed for FAQ: {faq}, error: {e}")
         return faq  # Fallback to original FAQ
 
-@app.route('/api/faqs/translate', methods=['GET'])
-async def translate_faqs():
-    target_lang = request.args.get('lang', 'en').lower()
+@app.get("/api/faqs/translate")
+async def translate_faqs(lang: str = 'en'):
+    target_lang = lang.lower()
     data = await query_faqs()
     faq_questions = [record.get("faq") for record in data.get("data", []) if record.get("faq")]
 
     # If target language is English, return original FAQs
     if target_lang == 'en':
-        return jsonify(faq_questions)
+        return JSONResponse(faq_questions)
 
     # Create tasks for all translation requests concurrently.
     tasks = [translate_faq_item(faq, target_lang) for faq in faq_questions]
     translated_faqs = await asyncio.gather(*tasks)
-    return jsonify(translated_faqs)
+    return JSONResponse(translated_faqs)
 
 # Rate limiting & audio file constraints
 RATE_LIMIT = 5  # Max requests per minute
@@ -97,33 +113,30 @@ RATE_WINDOW = 60  # Rate limit time window (seconds)
 user_requests = {}  # Track user IPs
 MAX_AUDIO_FILE_SIZE = 2 * 1024 * 1024  # 2MB file limit (~10 seconds audio)
 
-@app.route('/api/transcribe', methods=['POST'])
-async def transcribe_audio():
-    user_ip = request.remote_addr
+@app.post("/api/transcribe")
+async def transcribe_audio(request: Request, file: UploadFile = File(...)):
+    user_ip = request.client.host
     current_time = time.time()
-    
+
     # Apply rate limiting
     request_timestamps = [t for t in user_requests.get(user_ip, []) if current_time - t < RATE_WINDOW]
     if len(request_timestamps) >= RATE_LIMIT:
-        return jsonify({"error": "Rate limit exceeded. Try again later."}), 429
+        raise HTTPException(status_code=429, detail="Rate limit exceeded. Try again later.")
 
     request_timestamps.append(current_time)
     user_requests[user_ip] = request_timestamps
 
-    # Check for uploaded file
-    files = await request.files
-    if 'file' not in files:
-        return jsonify({"error": "No audio file provided"}), 400
-
-    audio_file = files['file']
-    if audio_file.content_length > MAX_AUDIO_FILE_SIZE:
-        return jsonify({"error": "Audio file is too large. Please record a shorter clip."}), 400
+    # Check for uploaded file size
+    contents = await file.read()
+    if len(contents) > MAX_AUDIO_FILE_SIZE:
+        raise HTTPException(status_code=400, detail="Audio file is too large. Please record a shorter clip.")
 
     try:
         # Save to a temp file
         temp_fd, temp_path = tempfile.mkstemp(suffix=".webm")
         os.close(temp_fd)
-        await audio_file.save(temp_path)
+        async with aiofiles.open(temp_path, 'wb') as out_file:
+            await out_file.write(contents)
 
         # Transcribe with OpenAI Whisper
         with open(temp_path, "rb") as audio:
@@ -134,10 +147,10 @@ async def transcribe_audio():
 
         os.remove(temp_path)  # Cleanup
         transcript_text = transcript.text if hasattr(transcript, 'text') else transcript.get("text", "")
-        return jsonify({"transcript": transcript_text})
+        return JSONResponse({"transcript": transcript_text})
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == '__main__':
     # Only run Uvicorn manually if NOT on Render

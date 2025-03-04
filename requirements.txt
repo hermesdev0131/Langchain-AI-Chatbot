@@ -5,3 +5,4 @@ python-dotenv==1.0.1
 quart==0.20.0
 Requests==2.32.3
 uvicorn==0.34.0
+fastapi==0.115.11
