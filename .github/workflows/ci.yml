@@ -7,22 +7,25 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  test-server-startup:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.11.9'
+      - uses: actions/checkout@v3
 
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
 
-      - name: Start server for 10 seconds
+      - name: Start server in the background
         run: |
-          timeout 10 python server.py
+          uvicorn server:app --port 8000 --host 0.0.0.0 &
+          # Wait a few seconds to ensure the server is up
+          sleep 5
+
+      - name: Check server health
+        run: |
+          curl -f http://127.0.0.1:8000 || exit 1
+
+      - name: Kill server
+        run: |
+          pkill uvicorn
