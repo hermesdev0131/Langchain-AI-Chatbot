@@ -3,8 +3,10 @@ from typing import Optional
 from asyncio import TimeoutError
 from os import getenv
 
-BASE_API_URL = getenv("LANGFLOW_BASE_API_URL")
-FLOW_ID = getenv("FLOW_ID")
+from config import Settings
+
+# Create a settings instance
+settings = Settings()
 
 async def run_flow(
     message: str,
@@ -23,7 +25,7 @@ async def run_flow(
     :param api_key: Optional API key for authentication
     :return: The response text from the flow
     """
-    api_url = f"{BASE_API_URL}/api/v1/run/{FLOW_ID}"
+    api_url = f"{settings.LANGFLOW_BASE_API_URL}/api/v1/run/{settings.FLOW_ID}"
 
     payload = {
         "input_value": message,

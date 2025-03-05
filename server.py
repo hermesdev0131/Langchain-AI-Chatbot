@@ -7,20 +7,19 @@ from fastapi import FastAPI, Request, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from dotenv import load_dotenv
 from langflow_api import run_flow
 import asyncio
 import aiofiles
 import uvicorn
 
-# Load environment variables
-load_dotenv()
-RENDER_LANGFLOW_API_KEY = os.getenv("RENDER_LANGFLOW_API_KEY")
-ZILLIZ_AUTH_TOKEN = os.getenv("ZILLIZ_AUTH_TOKEN")
-ZILLIZ_URL = os.getenv("ZILLIZ_URL")
-client = OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
-)
+from config import Settings
+
+# Instantiate the settings
+settings = Settings()
+
+# Use the configuration for the OpenAI client
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
 app = FastAPI()
 
 # Allow CORS for all origins (adjust as needed)
@@ -53,7 +52,7 @@ async def handle_post(request: Request):
     data = await request.json()
     user_message = data.get('userMessage', 'No message provided')
 
-    response = await run_flow(user_message, api_key=RENDER_LANGFLOW_API_KEY)
+    response = await run_flow(user_message, api_key=settings.RENDER_LANGFLOW_API_KEY)
     return JSONResponse({"response": response})
 
 # Fetch FAQs from Zilliz
@@ -63,11 +62,12 @@ async def query_faqs():
         "outputFields": ["faq"]
     }
     headers = {
-        "Authorization": ZILLIZ_AUTH_TOKEN,
+        "Authorization": f"Bearer {settings.ZILLIZ_AUTH_TOKEN}",
         "Accept": "application/json",
         "Content-Type": "application/json"
     }
-    response = requests.post(ZILLIZ_URL, json=payload, headers=headers)
+    response = requests.post(settings.ZILLIZ_URL + "/query", json=payload, headers=headers)
+    print(response)
     return response.json()
 
 @app.get("/api/faqs")
@@ -79,7 +79,6 @@ async def get_faqs():
 async def translate_faq_item(faq, target_lang):
     prompt = f"Translate the following text to {target_lang}:\n\n{faq}\n\n. Do not include anything but the translation"
     try:
-        # Run the synchronous call in a separate thread.
         response = await asyncio.to_thread(
             client.chat.completions.create,
             model="gpt-4o-mini",
@@ -155,6 +154,5 @@ async def transcribe_audio(request: Request, file: UploadFile = File(...)):
 if __name__ == '__main__':
     # Only run Uvicorn manually if NOT on Render
     if "RENDER" not in os.environ:
-        port = int(os.environ.get("PORT", 8000))  # Default to 8000 for local dev
-        print(f"Running locally on port {port}...")
-        uvicorn.run("server:app", host="0.0.0.0", port=port, reload=True)
+        print(f"Running locally on port {settings.PORT}...")
+        uvicorn.run("server:app", host="0.0.0.0", port=settings.PORT, reload=True)
