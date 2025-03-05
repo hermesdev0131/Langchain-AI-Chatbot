@@ -11,6 +11,7 @@ from langflow_api import run_flow
 import asyncio
 import aiofiles
 import uvicorn
+import pandas as pd
 
 from config import Settings
 
@@ -54,6 +55,88 @@ async def handle_post(request: Request):
 
     response = await run_flow(user_message, api_key=settings.RENDER_LANGFLOW_API_KEY)
     return JSONResponse({"response": response})
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
+@app.get("/api/search_data")
+async def search_data(query: str):
+    collection_name = "user_queries"
+    model_name = "text-embedding-3-large"
+
+    logging.debug("Received search query: %s", query)
+
+    try:
+        logging.debug("Generating embedding for query using model '%s'...", model_name)
+        embedding_response = await asyncio.to_thread(
+            client.embeddings.create, input=query, model=model_name
+        )
+        # logging.debug("Embedding response: %s", embedding_response)
+        # Access the embedding using dot notation
+        query_vector = embedding_response.data[0].embedding
+    except Exception as e:
+        logging.error("Error generating embedding: %s", str(e))
+        raise HTTPException(status_code=500, detail="Embedding generation failed: " + str(e))
+
+    payload = {
+        "collectionName": collection_name,
+        "data": [ query_vector],
+        "annsField": "vector",
+        "limit": 50,
+        "searchParams": {
+            "metric_type": "COSINE",
+            # nprobe - higher values are more accurate but slower
+            # radius - maximum distance for a result to be considered a match
+            "params": {"nprobe": 10, "radius": 0.2}
+        },
+        "outputFields": ["pk", "timestamp"]
+    }
+    
+    headers = {
+        "Authorization": f"Bearer {settings.ZILLIZ_AUTH_TOKEN}",
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
+
+    try:
+        response = requests.post(settings.ZILLIZ_URL + "/search", json=payload, headers=headers)
+        response.raise_for_status()  # This will raise an exception for HTTP error codes.
+        result = response.json()
+
+        # raw_result is expected to have a structure like:
+        # {'code': 0, 'cost': 6, 'data': [ { 'timestamp': 1741132395, ... }, ... ] }
+        data = result.get("data", [])
+        
+        # Convert data into a Pandas DataFrame
+        df = pd.DataFrame(data)
+        if df.empty or "timestamp" not in df.columns:
+            return JSONResponse({
+                "frequency": 0,
+                "result": []
+            })
+        
+        # Convert timestamp (in seconds) to datetime
+        df["datetime"] = pd.to_datetime(df["timestamp"], unit="s")
+        
+        # Group by a time interval.
+        # For example, group by minute using .dt.floor('T').
+        # You can change 'T' to 'H' for hourly or 'D' for daily.
+        grouped = df.groupby(df["datetime"].dt.floor("H")).size().reset_index(name="frequency")
+        grouped.sort_values(by="datetime", inplace=True)
+
+        # Convert the datetime to a string format
+        grouped["datetime"] = grouped["datetime"].dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        # Convert to list of dicts for JSONResponse
+        aggregated_results = grouped.to_dict(orient="records")
+        total_frequency = int(grouped["frequency"].sum())
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Zilliz query failed: " + str(e))
+    
+    return JSONResponse({
+        "frequency": total_frequency,
+        "result": aggregated_results
+    })
 
 # Fetch FAQs from Zilliz
 async def query_faqs():

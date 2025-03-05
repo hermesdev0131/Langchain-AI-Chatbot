@@ -1,56 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Interactive Chatbot Demo</title>
+
   <!-- Google Fonts -->
-  <link
-    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
-    rel="stylesheet"
-  />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+
   <!-- Font Awesome for Icons -->
-  <link
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    rel="stylesheet"
-  />
-  <!--icon for send button-->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" />
+
   <!-- Custom CSS -->
   <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/chart.css" />
+
   <!-- Select2 -->
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-  <!-- Tab favicon-->
+
+  <!-- Tab favicon -->
   <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
 </head>
+
 <body id="body">
   <!-- Hero Section -->
   <div class="hero" id="hero">
-    <img  src="https://cdn.freelogovectors.net/wp-content/uploads/2023/10/wichita-state-university-logo-freelogovectors.net_.png" width ="600">
-</div>
+    <img
+      src="https://cdn.freelogovectors.net/wp-content/uploads/2023/10/wichita-state-university-logo-freelogovectors.net_.png"
+      width="600" alt="Wichita State University Logo">
+  </div>
 
-  <!-- Features Section -->
-  <section class="features-section" id="features-section">
-    <h2>Why Choose Our Chatbot?</h2>
-    <div class="features-grid">
-      <div class="feature">
-        <i class="fas fa-cog"></i>
-        <h2>Easy to Integrate</h2>
-        <p>Get started quickly with a plug-and-play solution compatible with various platforms.</p>
-      </div>
-      <div class="feature">
-        <i class="fas fa-lock"></i>
-        <h2>Secure & Private</h2>
-        <p>Enjoy encrypted communication and robust data protection for your peace of mind.</p>
-      </div>
-      <div class="feature">
-        <i class="fas fa-users"></i>
-        <h2>Engaging UX</h2>
-        <p>Enhance user satisfaction with a friendly, intuitive chat interface.</p>
-      </div>
-    </div> 
-  </section>
+  <!-- Dashboard Container -->
+  <div class="dashboard-container">
+    <h1>Data Analytics Dashboard</h1>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+      <input type="text" id="searchTerm" placeholder="Enter search term..." />
+      <button onclick="searchAndUpdate()">Search</button>
+    </div>
+
+    <!-- Analytics Chart -->
+    <div class="chart-container">
+      <canvas id="analyticsChart" width="800" height="400"></canvas>
+    </div>
+  </div>
 
   <!-- Chatbot -->
   <div class="chatbot" id="chatbot">
@@ -60,36 +56,30 @@
       <span id="close-notification" class="close-icon">&times;</span>
     </div>
     <button class="chatbot__button" onclick="toggleChat()">
-      <img src="https://upload.wikimedia.org/wikipedia/en/thumb/9/90/Wichita_State_Shockers_logo.svg/300px-Wichita_State_Shockers_logo.svg.png" alt="Chatbot Image">
+      <img
+        src="https://upload.wikimedia.org/wikipedia/en/thumb/9/90/Wichita_State_Shockers_logo.svg/300px-Wichita_State_Shockers_logo.svg.png"
+        alt="Chatbot Image">
     </button>
-    
+
     <!-- Chatbot Popup -->
     <div class="chatbot__popup" id="chatPopup">
       <div class="chatbot__header">
-        <span><i></i> Shocker Assistant</span> 
+        <span><i></i> Shocker Assistant</span>
         <button class="fullscreen-btn" id="fullscreenButton" onclick="toggleFullscreen()">
           <i class="fas fa-expand"></i>
         </button>
       </div>
       <div class="chatbot__body" id="chatBody">
-
-        <!-- Messages will appear here dynamically -->
         <div id="chatbot-thinking" class="hidden thinking-animation">
           <i class="fas fa-spinner spinner-icon"></i> I'm Thinking<span class="dots">...</span>
-        </div>        
+        </div>
       </div>
       <div class="chatbot__footer">
         <button id="record-btn" class="chatbot__record-button">
           <i class="fas fa-microphone"></i>
         </button>
-
-        <input
-          type="text"
-          id="chatInput"
-          class="chatbot__input"
-          placeholder="Ask Shocker Assistant..."
-          onkeypress="handleEnterKey(event)"
-        />
+        <input type="text" id="chatInput" class="chatbot__input" placeholder="Ask Shocker Assistant..."
+          onkeypress="handleEnterKey(event)" />
         <button class="chatbot__send" onclick="sendMessage()">
           <i class="fas fa-paper-plane"></i>
         </button>
@@ -97,7 +87,14 @@
     </div>
   </div>
 
+  <!-- Load Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Load the date adapter for date-fns -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+
   <!-- Custom JavaScript -->
+  <script src="/static/renderChart.js"></script>
   <script src="/static/script.js"></script>
 </body>
+
 </html>

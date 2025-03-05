@@ -1,0 +1,54 @@
+/* Container for the dashboard to center content */
+.dashboard-container {
+    width: 90%;
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Centered search container with modern styling */
+  .search-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 0;
+  }
+  
+  .search-container input {
+    padding: 12px 16px;
+    font-size: 16px;
+    border: 3px solid #ccc;
+    border-radius: 4px;
+    width: 300px;
+    transition: border 0.3s ease;
+  }
+  
+  .search-container input:focus {
+    border-color: #ffaa00;
+    outline: none;
+  }
+  
+  .search-container button {
+    padding: 12px 20px;
+    font-size: 16px;
+    background-color: #ffd500;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .search-container button:hover {
+    background-color: #b38f00;
+  }
+  
+  /* Chart container to center and add space */
+  .chart-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+  }  
