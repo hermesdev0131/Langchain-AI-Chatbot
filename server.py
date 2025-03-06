@@ -56,17 +56,12 @@ async def handle_post(request: Request):
     response = await run_flow(user_message, api_key=settings.RENDER_LANGFLOW_API_KEY)
     return JSONResponse({"response": response})
 
-import logging
-logging.basicConfig(level=logging.DEBUG)
 @app.get("/api/search_data")
-async def search_data(query: str):
+async def search_data(query: str, limit: int = 100, radius: float = 0.8):
     collection_name = "user_queries"
     model_name = "text-embedding-3-large"
 
-    logging.debug("Received search query: %s", query)
-
     try:
-        logging.debug("Generating embedding for query using model '%s'...", model_name)
         embedding_response = await asyncio.to_thread(
             client.embeddings.create, input=query, model=model_name
         )
@@ -74,19 +69,19 @@ async def search_data(query: str):
         # Access the embedding using dot notation
         query_vector = embedding_response.data[0].embedding
     except Exception as e:
-        logging.error("Error generating embedding: %s", str(e))
+        print("Error generating embedding: %s", str(e))
         raise HTTPException(status_code=500, detail="Embedding generation failed: " + str(e))
 
     payload = {
         "collectionName": collection_name,
         "data": [ query_vector],
         "annsField": "vector",
-        "limit": 50,
+        "limit": limit,
         "searchParams": {
             "metric_type": "COSINE",
             # nprobe - higher values are more accurate but slower
             # radius - maximum distance for a result to be considered a match
-            "params": {"nprobe": 10, "radius": 0.2}
+            "params": {"nprobe": 10, "radius": radius}
         },
         "outputFields": ["pk", "timestamp"]
     }

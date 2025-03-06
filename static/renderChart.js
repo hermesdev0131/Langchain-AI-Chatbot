@@ -1,5 +1,7 @@
+// full.js
+
 // Create an empty chart when the page loads
-window.addEventListener("DOMContentLoaded", function() {
+window.addEventListener("DOMContentLoaded", function () {
     const ctx = document.getElementById('analyticsChart').getContext('2d');
     window.currentChart = new Chart(ctx, {
         type: 'line',
@@ -38,16 +40,43 @@ window.addEventListener("DOMContentLoaded", function() {
             }
         }
     });
+
+    // Add event listener to the search input to trigger search on Enter key press
+    const searchInput = document.getElementById('searchTerm');
+    searchInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            searchAndUpdate();
+        }
+    });
+    const limitInput = document.getElementById('limitInput');
+    limitInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            searchAndUpdate();
+        }
+    });
+    const radiusInput = document.getElementById('radiusInput');
+    radiusInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            searchAndUpdate();
+        }
+    });
 });
 
-async function fetchSearchData(term) {
-    const response = await fetch(`/api/search_data?query=${encodeURIComponent(term)}`);
+// Fetch search data from the server using term, limit, and radius
+async function fetchSearchData(term, limit, radius) {
+    // Build the query URL with the dynamic parameters.
+    const queryUrl = `/api/search_data?query=${encodeURIComponent(term)}&limit=${limit}&radius=${radius}`;
+    const response = await fetch(queryUrl);
     if (!response.ok) {
         throw new Error('Failed to fetch search data');
     }
     return await response.json();
 }
 
+// Render the timeline chart with new labels and data values
 function renderTimelineChart(labels, values) {
     const ctx = document.getElementById('analyticsChart').getContext('2d');
     if (window.currentChart) {
@@ -76,7 +105,7 @@ function renderTimelineChart(labels, values) {
                     mode: 'index',
                     intersect: false,
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             return context.dataset.label + ': ' + context.parsed.y;
                         }
                     }
@@ -106,20 +135,26 @@ function renderTimelineChart(labels, values) {
     });
 }
 
-// Called when user performs a search.
+// Called when the user performs a search.
 async function searchAndUpdate() {
     const term = document.getElementById('searchTerm').value.trim();
     if (!term) return;
 
+    // Get custom parameters from the input fields, or fallback to defaults
+    const limitInput = document.getElementById('limitInput').value;
+    const radiusInput = document.getElementById('radiusInput').value;
+    const limit = limitInput ? parseInt(limitInput) : 100;
+    const radius = radiusInput ? parseFloat(radiusInput) : 0.8;
+
     try {
-        const searchResult = await fetchSearchData(term);
+        const searchResult = await fetchSearchData(term, limit, radius);
         console.log("Full aggregated search result:", searchResult);
-        
+
         // Assuming server returns aggregated data as:
         // { frequency: totalFrequency, result: [ { "datetime": "2025-03-04T00:00:00Z", "frequency": X }, ... ] }
         const aggregated = searchResult.result;
-        
-        // Map the ISO datetime strings to Date objects (or keep as strings if Chart.js can parse them)
+
+        // Convert ISO datetime strings to Date objects
         const labels = aggregated.map(row => new Date(row.datetime));
         const values = aggregated.map(row => row.frequency);
 
