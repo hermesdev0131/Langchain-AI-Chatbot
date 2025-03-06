@@ -353,15 +353,22 @@ async function sendMessage() {
     // Hide "Thinking..."
     thinkingDiv.classList.add('hidden');
     if (data.response) {
-      // Show response with typewriter effect
-      typeWriterEffect(data.response, chatBody);
-
-      // Save the message to sessionStorage
-      saveChatHistory(data.response, 'bot');
+      // Check if the response contains an error property
+      if (data.response.error) {
+        if (data.response.error === 'API request timed out') {
+          addMessage('The API request timed out. Please try again.', 'bot');
+          saveChatHistory('The API request timed out. Please try again.', 'bot');
+        } else {
+          addMessage('Error: ' + data.response.error, 'bot');
+          saveChatHistory('Error: ' + data.response.error, 'bot');
+        }
+      } else {
+        // If there's no error, process the response normally
+        typeWriterEffect(data.response, chatBody);
+        saveChatHistory(data.response, 'bot');
+      }
     } else {
       addMessage('Sorry, something went wrong.', 'bot');
-
-      // Save the message to sessionStorage
       saveChatHistory('Sorry, something went wrong.', 'bot');
     }
   } catch (err) {
