@@ -1,3 +1,5 @@
+# server.py
+
 import os
 import time
 import tempfile
@@ -7,13 +9,18 @@ from fastapi import FastAPI, Request, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from langflow_api import run_flow
 import asyncio
 import aiofiles
 import uvicorn
 import pandas as pd
-
+from langchain_api import initialize_chain 
 from config import Settings
+import logging
+from contextlib import asynccontextmanager
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Instantiate the settings
 settings = Settings()
@@ -21,7 +28,17 @@ settings = Settings()
 # Use the configuration for the OpenAI client
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: initialize the chain
+    logger.info("Starting up and initializing the chain...")
+    app.state.chain = await initialize_chain()
+    logger.info("Chain initialization complete and stored in app state.")
+    yield
+    # Shutdown logic (if needed)
+    logger.info("Shutting down...")
+
+app = FastAPI(lifespan=lifespan)
 
 # Allow CORS for all origins (adjust as needed)
 app.add_middleware(
@@ -47,14 +64,24 @@ async def serve_index():
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="index.html not found")
 
-# Handle POST requests from the front-end
+# Handle POST requests for processing user queries
 @app.post("/")
 async def handle_post(request: Request):
+    """
+    Receives a user query, uses the RAG chain to find relevant context 
+    from Milvus, and returns the answer plus source docs.
+    """
     data = await request.json()
-    user_message = data.get('userMessage', 'No message provided')
-
-    response = await run_flow(user_message, api_key=settings.RENDER_LANGFLOW_API_KEY)
-    return JSONResponse({"response": response})
+    user_message = data.get("userMessage", "No message provided")
+    logger.info(f"Received user query: {user_message}")
+    
+    # Offload the blocking chain call using asyncio.to_thread
+    result = await asyncio.to_thread(app.state.chain.invoke, {"query": user_message})
+    logger.info(f"Chain result: {result}")    
+    
+    return {
+        "response": result["result"],
+    }
 
 @app.get("/api/search_data")
 async def search_data(query: str, limit: int = 100, radius: float = 0.8):
@@ -93,7 +120,7 @@ async def search_data(query: str, limit: int = 100, radius: float = 0.8):
     }
 
     try:
-        response = requests.post(settings.ZILLIZ_URL + "/search", json=payload, headers=headers)
+        response = requests.post(settings.ZILLIZ_URL + "/v2/vectordb/entities/search", json=payload, headers=headers)
         response.raise_for_status()  # This will raise an exception for HTTP error codes.
         result = response.json()
 
@@ -144,7 +171,7 @@ async def query_faqs():
         "Accept": "application/json",
         "Content-Type": "application/json"
     }
-    response = requests.post(settings.ZILLIZ_URL + "/query", json=payload, headers=headers)
+    response = requests.post(settings.ZILLIZ_URL + "/v2/vectordb/entities/query", json=payload, headers=headers)
     print(response)
     return response.json()
 
