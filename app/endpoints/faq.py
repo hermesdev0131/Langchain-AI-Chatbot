@@ -38,21 +38,31 @@ async def translate_faqs(request: Request, lang: str = 'en'):
     if target_lang == 'en':
         return JSONResponse(faq_questions)
 
-    # Retrieve the translation chain from app state
     try:
         translation_chain = request.app.state.translation_chain
     except AttributeError:
         raise HTTPException(status_code=500, detail="Translation chain not initialized.")
 
-    # For each FAQ, use the translation chain to translate the text.
-    # The translation chain expects input variables "faq" and "target_lang".
     tasks = [
         asyncio.to_thread(translation_chain.invoke, {"faq": faq, "target_lang": target_lang})
         for faq in faq_questions
     ]
     results = await asyncio.gather(*tasks)
     
-    # Assume the chain returns a dict with the key "text" containing the translation.
-    translated_faqs = [result.get("text", "").strip() for result in results]
-    logger.info("Translation complete")
+    translated_faqs = []
+    for result in results:
+        logger.info(f"Translation result: {result}")
+        try:
+            # If the result is a Pydantic model, convert it to dict and extract 'text'
+            if hasattr(result, "dict"):
+                text = result.dict().get("content", "")
+            else:
+                text = result
+            translated_faqs.append(text.strip())
+        except Exception as e:
+            logger.error(f"Error processing translation result: {e}")
+            translated_faqs.append("")
+            
+    logger.info(f"Translated {translated_faqs} FAQs to {target_lang}")
     return JSONResponse(translated_faqs)
+

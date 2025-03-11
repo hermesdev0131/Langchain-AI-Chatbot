@@ -1,19 +1,19 @@
 import asyncio
 import logging
 from langchain_openai import ChatOpenAI
-from langchain.chains import LLMChain
 from langchain.prompts import ChatPromptTemplate
 from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-async def initialize_translation_chain() -> LLMChain:
+async def initialize_translation_chain():
     """
-    Initializes an LLMChain dedicated for translating text.
+    Initializes a translation chain using the new RunnableSequence style.
+    This chain is composed by piping a prompt template into the LLM.
     """
     logger.info("Starting translation chain initialization...")
     
-    # Initialize LLM for translation (can be same or different as needed)
+    # Initialize LLM for translation
     llm = await asyncio.to_thread(
         ChatOpenAI,
         model_name="gpt-4o-mini",
@@ -33,8 +33,9 @@ async def initialize_translation_chain() -> LLMChain:
     ])
     logger.info("Prompt created for translation chain")
     
-    # Create the translation chain using LLMChain
-    translation_chain = LLMChain(llm=llm, prompt=prompt)
-    logger.info("Translation chain initialized")
+    # Compose the translation chain using the new style: prompt | llm
+    # This creates a pipeline where the prompt processes the input and passes it to the LLM.
+    translation_chain = prompt | llm
+    logger.info("Translation chain initialized using RunnableSequence (prompt | llm)")
     
     return translation_chain
