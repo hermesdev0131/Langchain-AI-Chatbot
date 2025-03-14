@@ -343,7 +343,7 @@ async function sendMessage() {
   thinkingDiv.classList.remove('hidden');
 
   try {
-    const response = await fetch('/api/query', {
+    const response = await fetch('/api/qa', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userMessage: message }),

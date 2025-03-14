@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from app.chains import initialize_retrieval_chain, initialize_translation_chain
 from app.config import settings
-from app.endpoints import base_router, query_router, search_router, faq_router, transcribe_router
+from app.endpoints import base_router, qa_router, data_search_router, faq_router, transcribe_router
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +36,8 @@ app.mount("/static", StaticFiles(directory=static_folder), name="static")
 
 # Include endpoints
 app.include_router(base_router)
-app.include_router(query_router, prefix="/api")
-app.include_router(search_router, prefix="/api")
+app.include_router(qa_router, prefix="/api")
+app.include_router(data_search_router, prefix="/api")
 app.include_router(faq_router, prefix="/api")
 app.include_router(transcribe_router, prefix="/api")
 

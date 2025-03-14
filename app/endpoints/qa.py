@@ -6,7 +6,7 @@ from app.chains.retrieval_chain import answer_and_store
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-@router.post("/query")
+@router.post("/qa")
 async def handle_post(request: Request):
     """
     Receives a user query, uses the RAG chain to find relevant context (innovation_campus),

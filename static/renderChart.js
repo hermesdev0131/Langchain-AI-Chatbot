@@ -68,7 +68,7 @@ window.addEventListener("DOMContentLoaded", function () {
 // Fetch search data from the server using term, limit, and radius
 async function fetchSearchData(term, limit, radius) {
     // Build the query URL with the dynamic parameters.
-    const queryUrl = `/api/search_data?query=${encodeURIComponent(term)}&limit=${limit}&radius=${radius}`;
+    const queryUrl = `/api/data_search?query=${encodeURIComponent(term)}&limit=${limit}&radius=${radius}`;
     const response = await fetch(queryUrl);
     if (!response.ok) {
         throw new Error('Failed to fetch search data');
