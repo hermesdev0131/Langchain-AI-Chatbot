@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
-import asyncio
 import logging
+from app.chains.retrieval_chain import answer_and_store
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -9,8 +9,8 @@ router = APIRouter()
 @router.post("/query")
 async def handle_post(request: Request):
     """
-    Receives a user query, uses the RAG chain to find relevant context 
-    from Milvus, and returns the answer.
+    Receives a user query, uses the RAG chain to find relevant context (innovation_campus),
+    then inserts the user query doc into user_queries. Returns the final answer.
     """
     try:
         data = await request.json()
@@ -22,13 +22,12 @@ async def handle_post(request: Request):
     logger.info(f"Received user query: {user_message}")
     
     try:
-        # Access the chain via request.app.state
-        result = await asyncio.to_thread(request.app.state.retrieval_chain.invoke, {"query": user_message})
-        logger.info(f"Retrieval Chain result: {result}")
+        # The chain wrapper is stored in app.state
+        wrapper = request.app.state.retrieval_chain_wrapper
+        result = await answer_and_store(user_message, wrapper)
+        logger.info(f"Answer: {result}")
     except Exception as e:
-        logger.error("Error invoking retrieval chain: %s", e)
-        raise HTTPException(status_code=500, detail="Retrieval Chain processing error")
+        logger.error("Error processing retrieval chain: %s", e)
+        raise HTTPException(status_code=500, detail="Processing error")
     
-    return JSONResponse({
-        "response": result["result"],
-    })
+    return JSONResponse({"response": result["result"]})

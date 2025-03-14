@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Startup: initializing chains...")
-    app.state.retrieval_chain = await initialize_retrieval_chain()
+    app.state.retrieval_chain_wrapper = await initialize_retrieval_chain()
     app.state.translation_chain = await initialize_translation_chain()
     logger.info("Chain stored in app state.")
     yield

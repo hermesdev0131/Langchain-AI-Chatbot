@@ -76,7 +76,7 @@ async def search_data(query: str, limit: int = 100, radius: float = 0.8):
         df["datetime"] = pd.to_datetime(df["timestamp"], unit="s")
         # Group results by the hour and calculate frequency
         grouped = (
-            df.groupby(df["datetime"].dt.floor("H"))
+            df.groupby(df["datetime"].dt.floor("h"))
               .size()
               .reset_index(name="frequency")
         )
