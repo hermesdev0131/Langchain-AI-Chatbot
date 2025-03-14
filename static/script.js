@@ -387,7 +387,7 @@ function scrollToBottom() {
   chatBody.scrollTop = chatBody.scrollHeight;
 }
 
-// Add user's or bot's message to the chat
+// Add user's message to the chat
 function addMessage(content, sender) {
   const chatBody = document.getElementById('chatBody');
   const messageDiv = document.createElement('div');
@@ -556,7 +556,8 @@ function toggleLinkText(event, imgElement, link) {
 }
 
 function typeWriterEffect(text, chatBody) {
-  const formattedText = replaceLinks(marked.parse(text)); // Convert Markdown to HTML - supports bold, italics, links, etc.
+  const formattedText = replaceLinks(marked.parse(text)); // Convert Markdown to HTML
+
   const plainText = text.replace(/https?:\/\/[^\s]+/g, "");
 
   const messageDiv = document.createElement('div');
@@ -571,7 +572,7 @@ function typeWriterEffect(text, chatBody) {
 
   const textDiv = document.createElement('div');
   textDiv.className = 'chatbot__text';
-  textDiv.innerHTML = "";  // Start empty, will be filled dynamically
+  textDiv.innerHTML = ""; // Start empty; will be filled dynamically
 
   const icon = document.createElement('img');
   icon.src = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/wichita.sidearmsports.com/images/responsive_2023/logo_main.svg";
@@ -585,19 +586,55 @@ function typeWriterEffect(text, chatBody) {
   chatBody.appendChild(messageDiv);
 
   let i = 0;
-
   function type() {
     if (i < plainText.length) {
       textDiv.textContent += plainText.charAt(i);
       i++;
       scrollToBottom();
-      setTimeout(type, 5);  // Adjust speed here if needed
+      setTimeout(type, 5); // Adjust typing speed as needed
     } else {
+      // Once typing is finished, replace the content with formatted HTML
       textDiv.innerHTML = formattedText;
+      
+      // Create a container for the interactive buttons
+      const buttonsContainer = document.createElement('div');
+      buttonsContainer.className = 'chatbot__buttons';
+      
+      // Copy button
+      const copyButton = document.createElement('button');
+      copyButton.className = 'btn-copy';
+      copyButton.innerHTML = '<i class="fas fa-copy"> ';
+      copyButton.addEventListener('click', function() {
+        navigator.clipboard.writeText(text);
+      });
+      buttonsContainer.appendChild(copyButton);
+      
+      // Like button
+      const likeButton = document.createElement('button');
+      likeButton.className = 'btn-like';
+      likeButton.innerHTML = '<i class="fas fa-thumbs-up">';
+      likeButton.addEventListener('click', function() {
+        // Implement like functionality as needed (e.g., send feedback to the server)
+        alert('You liked the message.'); // TODO: Replace with actual functionality
+      });
+      buttonsContainer.appendChild(likeButton);
+      
+      // Dislike button
+      const dislikeButton = document.createElement('button');
+      dislikeButton.className = 'btn-dislike';
+      dislikeButton.innerHTML = '<i class="fas fa-thumbs-down">';
+      dislikeButton.addEventListener('click', function() {
+        // Implement dislike functionality as needed (e.g., send feedback to the server)
+        alert('You disliked the message.'); // TODO: Replace with actual functionality
+      });
+      buttonsContainer.appendChild(dislikeButton);
+      
+      // Append the buttons container to the bot message
+      messageDiv.appendChild(buttonsContainer);
     }
   }
 
-  type();  // Start the effect
+  type(); // Start the typewriter effect
 }
 
 document.addEventListener('click', function (event) {

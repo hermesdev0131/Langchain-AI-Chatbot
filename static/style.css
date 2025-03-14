@@ -789,3 +789,53 @@ text-align: right;
   height: 40px;
   right: 10px;
 }
+
+/* =============================
+   Positioning for Bot Messages
+   ============================= */
+
+/* Ensure the bot's message container is a vertical flex container */
+.chatbot__message--bot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Default alignment for content */
+}
+
+/* Align the buttons container to the right side within the bot's message */
+.chatbot__message--bot .chatbot__buttons {
+  align-self: flex-end;
+  margin-top: 0.4rem; /* Slight spacing above buttons */
+}
+
+/* =============================
+       Button Base Styles
+   ============================= */
+
+/* Container that holds the buttons */
+.chatbot__buttons {
+  display: flex;
+  gap: 0.5rem;       /* Reduced spacing between buttons */
+  margin-top: 0.8rem;
+}
+
+/* Common base for all three buttons */
+.btn-copy,
+.btn-like,
+.btn-dislike {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;              /* Space between icon and text */
+  padding: 0.4rem 0.8rem;    /* Reduced padding for smaller buttons */
+  font-size: 0.8rem;         /* Slightly smaller text */
+  font-weight: 500;
+  color: #fff;
+  border: none;
+  border-radius: 20px;       /* Reduced corner radius for a smaller pill shape */
+  cursor: pointer;
+  background: linear-gradient(45deg, #FF5733, #FFC300);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
