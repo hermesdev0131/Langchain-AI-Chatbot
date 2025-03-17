@@ -11,18 +11,22 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PORT: 8000
-      OPENAI_API_KEY: "dummy"
-      ZILLIZ_AUTH_TOKEN: "dummy"
-      ZILLIZ_URL: "http://dummy"
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ZILLIZ_AUTH_TOKEN: ${{ secrets.ZILLIZ_AUTH_TOKEN }}
+      ZILLIZ_URL: ${{ secrets.ZILLIZ_URL }}
     steps:
       - uses: actions/checkout@v3
+
       - name: Install dependencies
         run: pip install -r requirements.txt
+
       - name: Start server in the background
         run: |
           uvicorn app.main:app --host 0.0.0.0 --port $PORT &
-          sleep 25
+          sleep 15
+
       - name: Check server health
         run: curl -f http://127.0.0.1:$PORT || exit 1
+
       - name: Kill server
         run: pkill uvicorn
