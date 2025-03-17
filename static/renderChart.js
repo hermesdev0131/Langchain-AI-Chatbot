@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Async fetch function
 async function fetchSearchData(term, limit, radius) {
-    const queryUrl = `/api/search_data?query=${encodeURIComponent(term)}&limit=${limit}&radius=${radius}`;
+    const queryUrl = `/api/data_search?query=${encodeURIComponent(term)}&limit=${limit}&radius=${radius}`;
     const response = await fetch(queryUrl);
     if (!response.ok) {
         throw new Error("Failed to fetch search data");
