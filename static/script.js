@@ -445,17 +445,37 @@
         const copyButton = document.createElement('button');
         copyButton.className = 'btn-copy';
         copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-        copyButton.addEventListener('click', () => navigator.clipboard.writeText(text));
+        copyButton.addEventListener('click', () => {
+          navigator.clipboard.writeText(text);
+          copyButton.classList.add('btn-clicked');
+          setTimeout(() => {
+            copyButton.classList.remove('btn-clicked');
+          }, 1000); // Change back to original color after 1 second
+        });
         buttonsContainer.appendChild(copyButton);
+
         const likeButton = document.createElement('button');
         likeButton.className = 'btn-like';
         likeButton.innerHTML = '<i class="fas fa-thumbs-up"></i>';
-        likeButton.addEventListener('click', () => alert('You liked the message.'));
+        likeButton.addEventListener('click', () => {
+          // TODO: Implement like functionality
+          likeButton.classList.add('btn-clicked');
+          setTimeout(() => {
+            likeButton.classList.remove('btn-clicked');
+          }, 1000); // Change back to original color after 1 second
+        });
         buttonsContainer.appendChild(likeButton);
+
         const dislikeButton = document.createElement('button');
         dislikeButton.className = 'btn-dislike';
         dislikeButton.innerHTML = '<i class="fas fa-thumbs-down"></i>';
-        dislikeButton.addEventListener('click', () => alert('You disliked the message.'));
+        dislikeButton.addEventListener('click', () => {
+          // TODO: Implement like functionality;
+          dislikeButton.classList.add('btn-clicked');
+          setTimeout(() => {
+            dislikeButton.classList.remove('btn-clicked');
+          }, 1000); // Change back to original color after 1 second
+        });
         buttonsContainer.appendChild(dislikeButton);
         messageDiv.appendChild(buttonsContainer);
       }

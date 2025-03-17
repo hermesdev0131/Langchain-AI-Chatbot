@@ -816,3 +816,9 @@ text-align: right;
   overflow: hidden;
 }
 
+.btn-clicked {
+  background-color: rgb(254, 251, 251); /* Change to grey color */
+  color: rgb(0, 89, 173); /* Change text color */
+  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
+}
+
