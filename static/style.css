@@ -506,8 +506,6 @@ background-color: #3c3a3a;
 color: #FFC300;
 align-self: flex-start;
 border-radius: 10px 10px 10px 0;
-margin-left: 40px;
-margin-bottom: 25px;
 }
 
 /* Bot messages on the RIGHT */
@@ -516,15 +514,8 @@ background-color: #FFC300;
 color: #3c3a3a;
 align-self: flex-end;
 border-radius: 10px 10px 0 10px;
-margin-right: 40px;
 }
 
-.chatbot__icon-container {
-  position: absolute;
-  top: 30px;
-  transform: translateY(-50%);
-  font-size: 22px;
-}
 
 /* Labels above each message */
 .chatbot__label {
@@ -545,15 +536,6 @@ align-self: flex-end;
 text-align: right;
 }
 
-.chatbot__message--user .chatbot__icon-container {
-  left: -40px;
-  color: black;
-}
-
-.chatbot__message--bot .chatbot__icon-container {
-  right: -40px;
-  color: black;
-}
 
 /* Scrollbar styling for chatbot body */
 .chatbot__body::-webkit-scrollbar {
@@ -571,28 +553,16 @@ text-align: right;
 
 #chatbot-thinking {
   color: black;
-  /* Set the text color to black */
-  font-style: italic;
-  /* Optional: Keep it italic for emphasis */
-  font-weight: bold;
-  /* Optional: Make it bold */
-  justify-content: center;
-  /* Center horizontally */
-  margin-bottom: 10px;
-  /* Add spacing below */
-}
-
-#chatbot-thinking {
-  color: black;
   font-style: italic;
   font-weight: bold;
   text-align: center; /* Center text horizontally */
-  margin-top: 10px; /* Add spacing below */
+  margin-bottom: 10px;
   
   position: absolute; /* Positioning */
   bottom: 58px; /* Stick to the bottom */
   padding-top: 10%;
   left: 1%; /* Center it horizontally */
+  left: 50%;
   transform: translateX(-50%); /* Adjust centering */
   width: 100%; /* Ensure it spans the full width */
 }
@@ -615,7 +585,7 @@ text-align: right;
   font-size: 18px;
   animation: spin 1s linear infinite;
   /* Spinning animation */
-  color: #FFC300;
+  color: #000000;
   /* Icon color */
 }
 
@@ -796,9 +766,16 @@ text-align: right;
 
 /* Ensure the bot's message container is a vertical flex container */
 .chatbot__message--bot {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start; /* Default alignment for content */
+  position: relative;
+}
+
+.chatbot__icon-container {
+  position: absolute;
+  top: 0.5rem;      /* Distance from the top of the bubble */
+  right: 0.5rem;    /* Keep it near the right edge, adjust as needed */
+  left: auto;       /* Ensure it's not centered */
+  transform: none;  /* Remove any horizontal shift */
+  /* Other styling (font-size, color, etc.) */
 }
 
 /* Align the buttons container to the right side within the bot's message */

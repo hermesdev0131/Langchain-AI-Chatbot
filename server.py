@@ -114,8 +114,8 @@ async def search_data(query: str, limit: int = 100, radius: float = 0.8):
         
         # Group by a time interval.
         # For example, group by minute using .dt.floor('T').
-        # You can change 'T' to 'H' for hourly or 'D' for daily.
-        grouped = df.groupby(df["datetime"].dt.floor("H")).size().reset_index(name="frequency")
+        # You can change 't' to 'h' for hourly or 'd' for daily.
+        grouped = df.groupby(df["datetime"].dt.floor("h")).size().reset_index(name="frequency")
         grouped.sort_values(by="datetime", inplace=True)
 
         # Convert the datetime to a string format

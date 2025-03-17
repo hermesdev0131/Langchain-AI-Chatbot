@@ -1,5 +1,7 @@
-/* Container for the dashboard to center content */
-.dashboard-container {
+/* =====================================
+   Dashboard Container
+   ===================================== */
+   .dashboard-container {
     width: 90%;
     max-width: 1000px;
     margin: 40px auto;
@@ -7,32 +9,40 @@
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     background-color: #fff;
-}
-
-/* Centered search container with modern styling */
-.search-container {
+  }
+  
+  /* =====================================
+     Common Container Margins
+     ===================================== */
+  .search-container,
+  .input-parameters {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 10px;
     margin: 20px 0;
-}
-
-.search-container input {
+  }
+  
+  /* =====================================
+     Search Container
+     ===================================== */
+  .search-container input {
+    width: 300px;
     padding: 12px 16px;
     font-size: 16px;
     border: 3px solid #ccc;
     border-radius: 4px;
-    width: 300px;
+    /* Common focus transition */
     transition: border 0.3s ease;
-}
-
-.search-container input:focus {
+  }
+  
+  .search-container input:focus {
     border-color: #ffaa00;
     outline: none;
-}
-
-.search-container button {
+  }
+  
+  /* Search button */
+  .search-container button {
     padding: 12px 20px;
     font-size: 16px;
     background-color: #ffd500;
@@ -41,36 +51,35 @@
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-}
-
-.search-container button:hover {
+  }
+  
+  .search-container button:hover {
     background-color: #b38f00;
-}
-
-/* Chart container to center and add space */
-.chart-container {
+  }
+  
+  /* =====================================
+     Chart Container
+     ===================================== */
+  .chart-container {
     display: flex;
     justify-content: center;
     margin-bottom: 40px;
-}
-
-.input-parameters {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    margin: 20px 0;
-}
-
-.input-parameters input {
+  }
+  
+  /* =====================================
+     Input Parameters
+     ===================================== */
+  .input-parameters input {
     padding: 2px 6px;
     font-size: 10px;
     border: 3px solid #ccc;
     border-radius: 4px;
+    /* Same focus transition */
     transition: border 0.3s ease;
-}
-
-.input-parameters input:focus {
+  }
+  
+  .input-parameters input:focus {
     border-color: #ffaa00;
     outline: none;
-}
+  }
+  
