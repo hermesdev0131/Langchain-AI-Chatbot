@@ -9,12 +9,13 @@ on:
 jobs:
   test-server-startup:
     runs-on: ubuntu-latest
+    env:
+      PORT: 8000
     steps:
       - uses: actions/checkout@v3
 
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
 
       - name: Start server in the background
         run: |
@@ -23,9 +24,7 @@ jobs:
           sleep 5
 
       - name: Check server health
-        run: |
-          curl -f http://127.0.0.1:8000 || exit 1
+        run: curl -f http://127.0.0.1:$PORT || exit 1
 
       - name: Kill server
-        run: |
-          pkill uvicorn
+        run: pkill uvicorn
