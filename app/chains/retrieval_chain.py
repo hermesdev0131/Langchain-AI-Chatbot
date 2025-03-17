@@ -93,7 +93,9 @@ async def initialize_retrieval_chain() -> RetrievalChainWrapper:
                 "2. If the context contains relevant links (for images, videos, or external pages) that relate to any topic, include them exactly as provided.\n"
                 "3. Include image, video, and external links related to the question, even if not explicitly requested. Prioritize image and video links.\n"
                 "4. Do not fabricate or guess any links that are not in the context.\n"
-                "6. If there isn’t enough detail, respond with: \"I do not have enough information from the provided context.\""
+                "6. If there isn’t enough detail, respond with: \"I do not have enough information from the provided context.\"\n"
+                "7. When including links in your responses, please output the full URL in plain text rather than using HTML or Markdown anchor formatting.\n"
+
             )
         ),
         ("human", "Question: {question}\nContext: {context}")
