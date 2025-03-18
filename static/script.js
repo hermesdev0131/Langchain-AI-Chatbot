@@ -311,9 +311,8 @@
     messageDiv.className = `chatbot__message chatbot__message--${sender}`;
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
-    labelDiv.textContent = sender === 'user' ? 'You' : 'Shocker Assistant';
+    labelDiv.textContent = 'You';
     const textDiv = document.createElement('div');
-    textDiv.className = 'chatbot__text';
     textDiv.innerHTML = sender === "bot" ? replaceLinks(content) : content;
     messageDiv.appendChild(labelDiv);
     messageDiv.appendChild(textDiv);
@@ -389,8 +388,8 @@
                       </video>`;
             }
             return `<a href="${link}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline">
-                      <img src="static/icons/redirect-grad.png" alt="External Link" style="width: 20px; height: 20px; vertical-align: middle;">
-                      <img src="static/icons/open-eye-grad.png" alt="External Link" style="width: 22px; height: 22px; vertical-align: middle; cursor: pointer;" onclick="toggleLinkText(event, this, '${link}')">
+                      <img src="static/img/icons/redirect-grad.png" alt="External Link" style="width: 20px; height: 20px; vertical-align: middle;">
+                      <img src="static/img/icons/open-eye-grad.png" alt="External Link" style="width: 22px; height: 22px; vertical-align: middle; cursor: pointer;" onclick="toggleLinkText(event, this, '${link}')">
                       <span class="hidden-link-text" style="display: none; margin-left: 5px;">${link}</span>
                     </a>`;
           });
@@ -409,10 +408,10 @@
     const span = imgElement.nextElementSibling;
     if (span.style.display === 'none' || span.style.display === '') {
       span.style.display = 'inline';
-      imgElement.src = "static/icons/close-eye-grad.png";
+      imgElement.src = "static/img/icons/close-eye-grad.png";
     } else {
       span.style.display = 'none';
-      imgElement.src = "static/icons/open-eye-grad.png";
+      imgElement.src = "static/img/icons/open-eye-grad.png";
     }
   };
 
@@ -424,9 +423,9 @@
     messageDiv.className = 'chatbot__message chatbot__message--bot';
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
-    labelDiv.textContent = "Shocker Assistant";
+    labelDiv.textContent = window.CHATBOT_NAME;
     const textDiv = document.createElement('div');
-    textDiv.className = 'chatbot__text';
+    textDiv.className = 'chatbot__message';
     textDiv.innerHTML = "";
     messageDiv.appendChild(labelDiv);
     messageDiv.appendChild(textDiv);

@@ -37,7 +37,7 @@
   }
   
   .search-container input:focus {
-    border-color: #ffaa00;
+    border-color: var(--primary-color);
     outline: none;
   }
   
@@ -45,8 +45,8 @@
   .search-container button {
     padding: 12px 20px;
     font-size: 16px;
-    background-color: #ffd500;
-    color: #fff;
+    background-color: var(--primary-color);
+    color: var(--text-color);
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -54,7 +54,8 @@
   }
   
   .search-container button:hover {
-    background-color: #b38f00;
+    background-color: var(--primary-color);
+    filter: brightness(90%);
   }
   
   /* =====================================
@@ -79,7 +80,7 @@
   }
   
   .input-parameters input:focus {
-    border-color: #ffaa00;
+    border-color: var(--primary-color);
     outline: none;
   }
   

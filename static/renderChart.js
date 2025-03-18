@@ -1,6 +1,7 @@
 // renderChart.js
 
 document.addEventListener("DOMContentLoaded", () => {
+    const unifiedColor = window.UNIFIED_COLOR
     const ctx = document.getElementById("analyticsChart").getContext("2d");
 
     // Create a single global Chart instance with your original advanced config
@@ -12,8 +13,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 label: "Frequency over Time",
                 data: [],
                 fill: false,
-                borderColor: "rgba(255, 195, 0, 1)",
-                backgroundColor: "rgba(255, 195, 0, 0.5)",
+                borderColor: unifiedColor,
+                backgroundColor: unifiedColor,
                 borderWidth: 2,
                 tension: 0.1,
                 pointRadius: 5,        // Keep the bigger point radius
