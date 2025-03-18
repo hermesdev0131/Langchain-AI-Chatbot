@@ -8,6 +8,7 @@ on:
 
 jobs:
   test-server-startup:
+    environment: env
     runs-on: ubuntu-latest
     env:
       PORT: 8000
