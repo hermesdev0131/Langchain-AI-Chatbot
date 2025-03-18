@@ -2,7 +2,7 @@
 
 from .config import settings
 from .chains import initialize_retrieval_chain, initialize_translation_chain
-from .endpoints import base_router, qa_router, data_search_router, faq_router, transcribe_router
+from .endpoints import base_router, qa_router, data_search_router, faq_router, transcribe_router, chatbot
 
 __all__ = [
     "settings",
@@ -13,4 +13,5 @@ __all__ = [
     "data_search_router",
     "faq_router",
     "transcribe_router",
+    "chatbot",
 ]

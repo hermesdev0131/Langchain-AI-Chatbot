@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ title }}</title>
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome for Icons -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', path='chatbot.css') }}" />
+
+    <!-- Markdown Parser -->
+    <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  
+    <style>
+      :root {
+        --primary-color: {{ unified_color }};
+        --text-color: {{ text_color }};
+        --hero-img: url('{{ hero_img }}');
+        --chatbot-background: url('{{ chatbot_background_img }}');
+      }
+    </style>
+    <script>
+      window.UNIFIED_COLOR = "{{ unified_color }}";
+      window.TEXT_COLOR = "{{ text_color }}";
+      window.CHATBOT_NAME = "{{ chatbot_name }}";
+    </script>
+  </head>
+  <body id="body">
+    <!-- Chatbot Section -->
+    <div class="chatbot" id="chatbot">
+      <!-- Chatbot Notification -->
+      <div id="chatbot-notification" class="notification-box">
+        <p id="typing-text">Need help? I’m {{ chatbot_name }}! Click here!</p>
+        <span id="close-notification" class="close-icon">&times;</span>
+      </div>
+
+      <!-- Chatbot Button -->
+      <button class="chatbot__button" id="chatbotButton">
+        <img src="{{ chatbot_button_img }}" alt="Chatbot Image" />
+      </button>
+
+      <!-- Chatbot Popup -->
+      <div class="chatbot__popup" id="chatPopup">
+        <div class="chatbot__header">
+          <span><i></i> {{ chatbot_name }}</span>
+          <button class="fullscreen-btn" id="fullscreenButton">
+            <i class="fas fa-expand"></i>
+          </button>
+        </div>
+
+        <div class="chatbot__body" id="chatBody"></div>
+
+        <!-- Thinking Indicator -->
+        <div id="chatbot-thinking" class="chatbot__thinking hidden">
+          <i class="spinner-icon fas fa-spinner"></i>
+          Thinking...
+        </div>
+
+        <div class="chatbot__footer">
+          <button id="record-btn" class="chatbot__record-button">
+            <i class="fas fa-microphone"></i>
+          </button>
+          <input type="text" id="chatInput" class="chatbot__input" placeholder="Ask {{ chatbot_name }}..." />
+          <button class="chatbot__send" id="sendMessageButton">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chatbot Scripts -->
+    <script defer src="{{ url_for('static', path='script.js') }}"></script>
+    <script defer>
+      document.addEventListener("DOMContentLoaded", () => {
+        // Bind chatbot button event
+        document.getElementById("chatbotButton").addEventListener("click", toggleChat);
+
+        // Bind notification close event
+        document.getElementById("close-notification").addEventListener("click", () => {
+          document.getElementById("chatbot-notification").style.display = "none";
+        });
+
+        // Bind fullscreen button event
+        document.getElementById("fullscreenButton").addEventListener("click", toggleFullscreen);
+
+        // Bind send message event
+        document.getElementById("sendMessageButton").addEventListener("click", sendMessage);
+
+        // Bind Enter key for sending message
+        document.getElementById("chatInput").addEventListener("keypress", (event) => {
+          if (event.key === "Enter") sendMessage();
+        });
+      });
+    </script>
+  </body>
+</html>
