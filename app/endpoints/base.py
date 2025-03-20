@@ -20,6 +20,9 @@ async def serve_index(request: Request):
         "hero_alt": "Wichita State University Logo",
         "chatbot_name": "Shocker Assistant",
         "unified_color": "#FFC000",
+        "unified_color_light": "#ffd963",
+        "unified_color_dark": "#bf9104",
+        "unified_color_secondary": "#000000",
         "text_color": "#FFFFFF",
     }
     Wichita_template = {
@@ -31,7 +34,10 @@ async def serve_index(request: Request):
         "chatbot_background_img": "/static/img/chatbot_button_wichita.png",
         "hero_alt": "City of Wichita",
         "chatbot_name": "Wichita Assistant",
-        "unified_color": "#0047AB",
+        "unified_color": "#2e4669",
+        "unified_color_light": "#577cb3",
+        "unified_color_dark": "#1e304a",
+        "unified_color_secondary": "#FFFFFF",
         "text_color": "#FFFFFF",
     }
     template = Wichita_template

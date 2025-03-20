@@ -98,7 +98,7 @@
   align-items: center;
   justify-content: center;
   font-size: 30px;
-  background-color: var(--primary-color);
+  background-color: var(--secondary-color);
   transition: transform 0.3s ease, background-color 0.3s ease;
 }
 
@@ -447,7 +447,7 @@
 
 /* Bot messages on the RIGHT */
 .chatbot__message--bot {
-  background-color: var(--primary-color);
+  background-color: var(--primary-color-light);
   color: var(--text-color);
   align-self: flex-start;
   border-radius: 10px 10px 0 10px;

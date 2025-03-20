@@ -51,6 +51,9 @@ body {
     transform: translate(-50%, -50%);
     max-height: 200px;
     width: auto;
+    background-color: var(--secondary-color);
+    padding: 5px;
+    border-radius: 20px;
   }
   
   /* Features Section */
