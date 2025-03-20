@@ -58,6 +58,15 @@
       <div class="chatbot__popup" id="chatPopup">
         <div class="chatbot__header">
           <span><i></i> {{ chatbot_name }}</span>
+
+          <div class="chatbot__footer-additions">
+            <button id="uploadDocumentButton" class="chatbot__upload-button">
+              <i class="fas fa-upload"></i>
+            </button>
+            <!-- Hidden file input -->
+            <input type="file" id="uploadFileInput" style="display:none" accept=".txt,.md,.pdf"/>
+          </div>
+          
           <button class="fullscreen-btn" id="fullscreenButton">
             <i class="fas fa-expand"></i>
           </button>
@@ -84,7 +93,7 @@
     </div>
 
     <!-- Chatbot Scripts -->
-    <script defer src="{{ url_for('static', path='script.js') }}"></script>
+    <script defer src="{{ url_for('static', path='chatbot.js') }}"></script>
     <script defer>
       document.addEventListener("DOMContentLoaded", () => {
         // Bind chatbot button event

@@ -30,8 +30,8 @@ async def initialize_retrieval_chain() -> RetrievalChainWrapper:
     
     # 1. Create the underlying embeddings model
     underlying_embeddings = OpenAIEmbeddings(
-        openai_api_key=settings.OPENAI_API_KEY,
-        model="text-embedding-3-large"
+        openai_api_key = settings.OPENAI_API_KEY,
+        model = settings.OPENAI_API_EMBEDDING_MODEL_NAME
     )
     
     # 2. Create an in-memory byte store + a cached embedding function
@@ -39,7 +39,7 @@ async def initialize_retrieval_chain() -> RetrievalChainWrapper:
     cached_embeddings = CacheBackedEmbeddings.from_bytes_store(
         underlying_embeddings,
         byte_store,
-        namespace="text-embedding-3-large"
+        namespace=settings.OPENAI_API_EMBEDDING_MODEL_NAME
     )
     logger.info("Cached embeddings initialized")
     
@@ -48,7 +48,7 @@ async def initialize_retrieval_chain() -> RetrievalChainWrapper:
     retriever_vectorstore = await asyncio.to_thread(
         Zilliz,
         embedding_function=cached_embeddings,
-        collection_name="innovation_campus",  # <--- queries happen here
+        collection_name=settings.ZILLIZ_COLLECTION_NAME,  # <--- queries happen here
         connection_args={
             "uri": settings.ZILLIZ_URL,
             "token": settings.ZILLIZ_AUTH_TOKEN,
@@ -76,28 +76,16 @@ async def initialize_retrieval_chain() -> RetrievalChainWrapper:
     # 5. Initialize LLM
     llm = await asyncio.to_thread(
         ChatOpenAI,
-        model_name="gpt-4o-mini",
+        model_name=settings.OPENAI_API_CHAT_MODEL_NAME,
         openai_api_key=settings.OPENAI_API_KEY,
-        temperature=0,
-        request_timeout=50_000
+        temperature=settings.TEMPERATURE,
+        request_timeout=settings.REQUEST_TIMEOUT
     )
     logger.info("LLM loaded")
     
     # 6. Create prompt
     prompt = ChatPromptTemplate.from_messages([
-        (
-            "system",
-            (
-                "Please answer the question below in up to 5 sentences (not including any extra links), or give information, following these rules:\n"
-                "1. Only use information explicitly contained in the context.\n"
-                "2. If the context contains relevant links (for images, videos, or external pages) that relate to any topic, include them exactly as provided.\n"
-                "3. Include image, video, and external links related to the question, even if not explicitly requested. Prioritize image and video links.\n"
-                "4. Do not fabricate or guess any links that are not in the context.\n"
-                "6. If there isn’t enough detail, respond with: \"I do not have enough information from the provided context.\"\n"
-                "7. When including links in your responses, please output the full URL in plain text rather than using HTML or Markdown anchor formatting.\n"
-
-            )
-        ),
+        ("system", settings.SYSTEM_PROMPT),
         ("human", "Question: {question}\nContext: {context}")
     ])
     logger.info("Prompt created")
@@ -118,7 +106,7 @@ async def initialize_retrieval_chain() -> RetrievalChainWrapper:
     user_queries_vectorstore = await asyncio.to_thread(
         Zilliz,
         embedding_function=cached_embeddings,
-        collection_name="user_queries",  # <--- we insert user queries here
+        collection_name=settings.ZILLIZ_USER_QUERIES_COLLECTION_NAME,  # <--- we insert user queries here
         connection_args={
             "uri": settings.ZILLIZ_URL,
             "token": settings.ZILLIZ_AUTH_TOKEN,
@@ -144,7 +132,7 @@ async def initialize_retrieval_chain() -> RetrievalChainWrapper:
 
 async def answer_and_store(query: str, wrapper: RetrievalChainWrapper) -> str:
     """
-    1) Use the wrapper.chain (which retrieves from 'innovation_campus') to get the answer.
+    1) Use the wrapper.chain (which retrieves from 'COLLECTION_NAME') to get the answer.
     2) Insert the user's query into the 'user_queries' collection (so we can see them in Zilliz Cloud).
     """
     # a) Let the chain generate an answer

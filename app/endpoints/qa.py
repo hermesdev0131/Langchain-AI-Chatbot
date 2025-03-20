@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 import logging
-from app.chains.retrieval_chain import answer_and_store
+from app.chains.retrieval_chain_azure import answer_query
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -24,7 +24,7 @@ async def handle_post(request: Request):
     try:
         # The chain wrapper is stored in app.state
         wrapper = request.app.state.retrieval_chain_wrapper
-        result = await answer_and_store(user_message, wrapper)
+        result = await answer_query(user_message, wrapper)
         logger.info(f"Answer: {result}")
     except Exception as e:
         logger.error("Error processing retrieval chain: %s", e)

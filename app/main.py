@@ -5,18 +5,19 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
-from app.chains import initialize_retrieval_chain, initialize_translation_chain
-from app.config import settings
-from app.endpoints import base_router, qa_router, data_search_router, faq_router, transcribe_router, chatbot
+from app import *
 
 logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Startup: initializing chains...")
-    app.state.retrieval_chain_wrapper = await initialize_retrieval_chain()
+    vector_store, cached_embeddings = await initialize_vector_store_azure()
+    # Store the vector store for later use
+    app.state.vector_store = vector_store
+    app.state.retrieval_chain_wrapper = await initialize_retrieval_chain_azure(vector_store, cached_embeddings)
     app.state.translation_chain = await initialize_translation_chain()
-    logger.info("Chain stored in app state.")
+    logger.info("Chains stored in app state.")
     yield
     logger.info("Shutdown: cleaning up resources...")
 
@@ -46,11 +47,13 @@ app.mount("/static", StaticFiles(directory=static_folder), name="static")
 
 # Include endpoints
 app.include_router(base_router)
-app.include_router(chatbot)
+app.include_router(chatbot_router)
+app.include_router(ingest_router, prefix="/api")
+app.include_router(data_delete_router, prefix="/api")
 app.include_router(qa_router, prefix="/api")
 app.include_router(data_search_router, prefix="/api")
 app.include_router(faq_router, prefix="/api")
 app.include_router(transcribe_router, prefix="/api")
 
 if __name__ == '__main__':
-    uvicorn.run("app.main:app", host="0.0.0.0", port=settings.PORT, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=settings.PORT, reload=False)

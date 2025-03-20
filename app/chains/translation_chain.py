@@ -16,10 +16,10 @@ async def initialize_translation_chain():
     # Initialize LLM for translation
     llm = await asyncio.to_thread(
         ChatOpenAI,
-        model_name="gpt-4o-mini",
-        openai_api_key=settings.OPENAI_API_KEY,
-        temperature=0,
-        request_timeout=20_000
+        model_name =         settings.OPENAI_API_CHAT_MODEL_NAME,
+        openai_api_key =     settings.OPENAI_API_KEY,
+        temperature =        settings.TEMPERATURE,
+        request_timeout =    settings.REQUEST_TIMEOUT,
     )
     logger.info("LLM loaded for translation")
     

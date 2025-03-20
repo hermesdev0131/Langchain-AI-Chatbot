@@ -15,6 +15,11 @@
   const thinkingDiv = document.getElementById('chatbot-thinking');
   const closeNotification = document.getElementById("close-notification");
 
+  // upload document button
+  const uploadBtn = document.getElementById("uploadDocumentButton");
+  const uploadInput = document.getElementById("uploadFileInput");
+
+
   // Toggle chat popup
   function toggleChat() {
     const isVisible = chatPopup.classList.contains('show');
@@ -489,6 +494,35 @@
     if (!chatPopup.contains(event.target) && !chatbotButton.contains(event.target)) {
       chatPopup.classList.add('fade-out');
       chatPopup.addEventListener('transitionend', handleFadeOut, { once: true });
+    }
+  });
+
+  uploadBtn.addEventListener("click", () => {
+    uploadInput.click();
+  });
+
+  uploadInput.addEventListener("change", async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        const response = await fetch("/api/ingest", {
+          method: "POST",
+          body: formData
+        });
+        const data = await response.json();
+        if (data.status === "success") {
+          alert("Document ingested successfully!");
+        } else {
+          alert("Ingestion failed: " + data.detail);
+        }
+      } catch (error) {
+        console.error("Error uploading document:", error);
+        alert("Error uploading document.");
+      }
+      // Clear the input so the same file can be re-selected if needed
+      uploadInput.value = "";
     }
   });
 
