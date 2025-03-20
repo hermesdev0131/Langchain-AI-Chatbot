@@ -15,8 +15,17 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       ZILLIZ_AUTH_TOKEN: ${{ secrets.ZILLIZ_AUTH_TOKEN }}
       ZILLIZ_URL: ${{ secrets.ZILLIZ_URL }}
+      AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+      AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+      AZURE_AI_SEARCH_ENDPOINT: ${{ secrets.AZURE_AI_SEARCH_ENDPOINT }}
+      AZURE_AI_SEARCH_API_KEY: ${{ AZURE_AI_SEARCH_API_KEY }}
     steps:
       - uses: actions/checkout@v3
+
+      - name: Set up Python 3.11.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11.9'
 
       - name: Install dependencies
         run: pip install -r requirements.txt
