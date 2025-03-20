@@ -4,7 +4,6 @@ import asyncio
 import requests
 import pandas as pd
 from app.config import settings
-from app.config import settings
 import logging
 
 logger = logging.getLogger(__name__)
