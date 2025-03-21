@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import JSONResponse
-from app.chains.delete_documents import delete_document
+from app.chains.delete_documents import delete_document, delete_all_documents
 import logging
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ async def document_delete(document_id: str = Query(..., description="The ID of t
       localhost:8000/api/document_delete?document_id=DOCUMENT_ID
     """
     try:
-        result = await delete_document(document_id)
+        result = await delete_all_documents()
     except Exception as e:
         logger.error("Document deletion error: %s", e)
         raise HTTPException(status_code=500, detail="Document deletion failed")

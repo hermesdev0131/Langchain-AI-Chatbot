@@ -124,107 +124,129 @@
   }
 
   // Display FAQs from server
-  async function displayFAQs() {
-    try {
-      const response = await fetch('/api/faqs');
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const faqQuestions = await response.json();
+async function displayFAQs() {
+  try {
+    const response = await fetch('/api/faqs');
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const faqData = await response.json();
+    console.log(faqData);
 
-      const faqContainer = document.createElement('div');
-      faqContainer.className = 'faq-container';
-      faqContainer.id = 'faq-container';
-
-      const languageDiv = document.createElement('div');
-      languageDiv.className = 'faq-language-dropdown';
-      languageDiv.innerHTML = `
-        <select id="faq-language" onchange="switchFaqLanguage()">
-          <option value="en" selected>English</option>
-          <option value="es">Español</option>
-          <option value="vi">Tiếng Việt</option>
-          <option value="fr">Français</option>
-          <option value="de">Deutsch</option>
-          <option value="zh">中文</option>
-          <option value="ja">日本語</option>
-          <option value="ru">Русский</option>
-          <option value="ar">العربية</option>
-          <option value="ko">한국어</option>
-          <option value="hi">हिन्दी</option>
-          <option value="bn">বাংলা</option>
-        </select>
-      `;
-      faqContainer.appendChild(languageDiv);
-
-      const faqQuestionsContainer = document.createElement('div');
-      faqQuestionsContainer.id = 'faq-questions';
-      const fragment = document.createDocumentFragment();
-      faqQuestions.forEach(questionObj => {
-        const question = typeof questionObj === 'string' ? questionObj : questionObj.question;
-        const faqDiv = document.createElement('div');
-        faqDiv.className = 'faq-question';
-        faqDiv.addEventListener('click', event => {
-          event.stopPropagation();
-          sendFAQ(question);
-        });
-        const iconDiv = document.createElement('div');
-        iconDiv.className = 'faq-icon';
-        iconDiv.innerHTML = '<i class="fas fa-comment-dots"></i>';
-        faqDiv.appendChild(iconDiv);
-        const textDiv = document.createElement('div');
-        textDiv.className = 'faq-text';
-        textDiv.textContent = question;
-        faqDiv.appendChild(textDiv);
-        fragment.appendChild(faqDiv);
+    const faqQuestions = [];
+    if (faqData && Array.isArray(faqData.data)) {
+      faqData.data.forEach(companyObj => {
+        // Use the correct property name: "faq"
+        if (companyObj.faq && Array.isArray(companyObj.faq)) {
+          companyObj.faq.forEach(faq => {
+            faqQuestions.push(faq);
+          });
+        }
       });
-      faqQuestionsContainer.appendChild(fragment);
-      faqContainer.appendChild(faqQuestionsContainer);
-      chatBody.appendChild(faqContainer);
-      scrollToBottom();
-
-      // Initialize language dropdown if using Select2
-      if (window.$ && typeof $('#faq-language').select2 === 'function') {
-        $('#faq-language').select2({
-          minimumResultsForSearch: Infinity,
-          width: 'resolve'
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching FAQs:", error);
     }
-  }
 
-  // Switch FAQ language by fetching translated questions
-  async function switchFaqLanguage() {
-    const langDropdown = document.getElementById("faq-language");
-    const selectedLang = langDropdown.value;
-    try {
-      const response = await fetch(`/api/faqs/translate?lang=${selectedLang}`);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const translatedFaqs = await response.json();
-      const faqQuestionsContainer = document.getElementById("faq-questions");
-      faqQuestionsContainer.innerHTML = '';
-      const fragment = document.createDocumentFragment();
-      translatedFaqs.forEach(faq => {
-        const faqDiv = document.createElement('div');
-        faqDiv.className = 'faq-question';
-        faqDiv.addEventListener('click', event => {
-          event.stopPropagation();
-          sendFAQ(faq);
-        });
-        const iconDiv = document.createElement('div');
-        iconDiv.className = 'faq-icon';
-        iconDiv.innerHTML = '<i class="fas fa-comment-dots"></i>';
-        faqDiv.appendChild(iconDiv);
-        const textDiv = document.createElement('div');
-        textDiv.className = 'faq-text';
-        textDiv.textContent = faq;
-        faqDiv.appendChild(textDiv);
-        fragment.appendChild(faqDiv);
+    const faqContainer = document.createElement('div');
+    faqContainer.className = 'faq-container';
+    faqContainer.id = 'faq-container';
+
+    const languageDiv = document.createElement('div');
+    languageDiv.className = 'faq-language-dropdown';
+    languageDiv.innerHTML = `
+      <select id="faq-language" onchange="switchFaqLanguage()">
+        <option value="en" selected>English</option>
+        <option value="es">Español</option>
+        <option value="vi">Tiếng Việt</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="zh">中文</option>
+        <option value="ja">日本語</option>
+        <option value="ru">Русский</option>
+        <option value="ar">العربية</option>
+        <option value="ko">한국어</option>
+        <option value="hi">हिन्दी</option>
+        <option value="bn">বাংলা</option>
+      </select>
+    `;
+    faqContainer.appendChild(languageDiv);
+
+    const faqQuestionsContainer = document.createElement('div');
+    faqQuestionsContainer.id = 'faq-questions';
+    const fragment = document.createDocumentFragment();
+
+    faqQuestions.forEach(faqObj => {
+      // If faqObj is an object with a heading, use that; otherwise, use faqObj directly.
+      const question = (typeof faqObj === 'object' && faqObj.heading) ? faqObj.heading : faqObj;
+      
+      const faqDiv = document.createElement('div');
+      faqDiv.className = 'faq-question';
+      faqDiv.addEventListener('click', event => {
+        event.stopPropagation();
+        sendFAQ(question);
       });
-      faqQuestionsContainer.appendChild(fragment);
-    } catch (error) {
-      console.error("Error switching FAQ language:", error);
+      
+      const iconDiv = document.createElement('div');
+      iconDiv.className = 'faq-icon';
+      iconDiv.innerHTML = '<i class="fas fa-comment-dots"></i>';
+      faqDiv.appendChild(iconDiv);
+      
+      const textDiv = document.createElement('div');
+      textDiv.className = 'faq-text';
+      textDiv.textContent = question;
+      faqDiv.appendChild(textDiv);
+      
+      fragment.appendChild(faqDiv);
+    });
+
+    faqQuestionsContainer.appendChild(fragment);
+    faqContainer.appendChild(faqQuestionsContainer);
+    chatBody.appendChild(faqContainer);
+    scrollToBottom();
+
+    // Initialize language dropdown if using Select2
+    if (window.$ && typeof $('#faq-language').select2 === 'function') {
+      $('#faq-language').select2({
+        minimumResultsForSearch: Infinity,
+        width: 'resolve'
+      });
     }
+  } catch (error) {
+    console.error("Error fetching FAQs:", error);
   }
+}
+
+// Switch FAQ language by fetching translated questions
+async function switchFaqLanguage() {
+  const langDropdown = document.getElementById("faq-language");
+  const selectedLang = langDropdown.value;
+  try {
+    const response = await fetch(`/api/faqs/translate?lang=${selectedLang}`);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const translatedFaqs = await response.json();
+    const faqQuestionsContainer = document.getElementById("faq-questions");
+    faqQuestionsContainer.innerHTML = '';
+    const fragment = document.createDocumentFragment();
+    translatedFaqs.forEach(faq => {
+      // Expecting faq to be the translated heading
+      const faqDiv = document.createElement('div');
+      faqDiv.className = 'faq-question';
+      faqDiv.addEventListener('click', event => {
+        event.stopPropagation();
+        sendFAQ(faq);
+      });
+      const iconDiv = document.createElement('div');
+      iconDiv.className = 'faq-icon';
+      iconDiv.innerHTML = '<i class="fas fa-comment-dots"></i>';
+      faqDiv.appendChild(iconDiv);
+      const textDiv = document.createElement('div');
+      textDiv.className = 'faq-text';
+      textDiv.textContent = faq;
+      faqDiv.appendChild(textDiv);
+      fragment.appendChild(faqDiv);
+    });
+    faqQuestionsContainer.appendChild(fragment);
+  } catch (error) {
+    console.error("Error switching FAQ language:", error);
+  }
+}
+
 
   // Send FAQ question as a chat message
   function sendFAQ(question) {

@@ -5,6 +5,7 @@ from langchain.docstore.document import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import chardet
 from PyPDF2 import PdfReader
+from docx import Document as DocxDocument
 import io
 from app.config import settings
 
@@ -39,6 +40,13 @@ async def initialize_ingest_chain(file_contents: bytes, filename: str, vector_st
             text = extract_text_from_pdf(file_contents)
             if not text.strip():
                 raise ValueError("Extracted text from PDF is empty.")
+        elif filename.lower().endswith(".docx"):
+            # Wrap the bytes in a BytesIO object
+            docx_file = DocxDocument(io.BytesIO(file_contents))
+            # Join all paragraphs together
+            text = "\n".join([p.text for p in docx_file.paragraphs])
+            if not text.strip():
+                raise ValueError("Extracted text from DOCX is empty.")
         else:
             # Detect encoding for text files
             detection = chardet.detect(file_contents)

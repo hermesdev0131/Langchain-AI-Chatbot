@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
+from openai import OpenAI
 from app import *
 
 logger = logging.getLogger(__name__)
@@ -12,11 +13,20 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Startup: initializing chains...")
-    vector_store, cached_embeddings = await initialize_vector_store_azure()
-    # Store the vector store for later use
-    app.state.vector_store = vector_store
-    app.state.retrieval_chain_wrapper = await initialize_retrieval_chain_azure(vector_store, cached_embeddings)
-    app.state.translation_chain = await initialize_translation_chain()
+    
+    # Choose the provider based on configuration
+    if settings.PROVIDER.lower() == "azure":
+        provider = AzureProvider()
+    elif settings.VECTORDB_PROVIDER.lower() == "zilliz":
+        provider = ZillizProvider()
+    else:
+        raise ValueError("Unsupported VECTORDB_PROVIDER value in settings.")
+
+    app.state.retrieval_chain_wrapper = await provider.initialize_retrieval_chain()
+    app.state.translation_chain = await provider.initialize_translation_chain()
+    app.state.ingest_chain = await provider.initialize_ingest_chain()
+    app.state.provider = provider  # Store provider instance for later use in routes
+
     logger.info("Chains stored in app state.")
     yield
     logger.info("Shutdown: cleaning up resources...")

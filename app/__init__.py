@@ -3,8 +3,11 @@
 from .config import settings
 from app.chains import *   # This pulls in __all__ from app/chains/__init__.py
 from app.endpoints import *  # This pulls in __all__ from app/endpoints/__init__.py
+from app.providers import *
 
 __all__ = [
+    "AzureProvider",
+    "ZillizProvider",
     "settings",
     # The exported names from chains
     "initialize_retrieval_chain_azure",

@@ -10,3 +10,5 @@ langchain-openai
 PyPDF2
 python-multipart
 uvicorn
+python-docx
+motor

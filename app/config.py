@@ -1,8 +1,8 @@
-from openai import OpenAI
 from pydantic_settings import BaseSettings
 from typing import ClassVar
 
 class Settings(BaseSettings):
+    PROVIDER: str = "azure"
     SYSTEM_PROMPT: str = (
         "Please answer the question below in up to 5 sentences (not including any extra links), or give information, following these rules:\n"
         "1. Only use information explicitly contained in the context.\n"
@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     AZURE_OPENAI_API_KEY: str
     AZURE_AI_SEARCH_ENDPOINT: str
     AZURE_AI_SEARCH_API_KEY: str
+    AZURE_MONGO_CONNECTION_STRING: str
+    AZURE_MONGO_DATABASE_NAME: str = "chatbot-cosmos-mongo-db"
     AZURE_MODEL_NAME:str = "gpt-4o-mini"
     AZURE_DEPLOYMENT_NAME: str = "gpt-4o-mini"
     AZURE_API_VERSION: str = "2024-07-01-preview"
@@ -68,8 +70,5 @@ class Settings(BaseSettings):
         env_file = ".env"
         extra = "ignore"
 
-    @property
-    def client(self) -> OpenAI:
-        return OpenAI(api_key=self.OPENAI_API_KEY)
 
 settings = Settings()
