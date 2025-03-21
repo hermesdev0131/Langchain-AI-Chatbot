@@ -19,6 +19,7 @@ jobs:
       AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
       AZURE_AI_SEARCH_ENDPOINT: ${{ secrets.AZURE_AI_SEARCH_ENDPOINT }}
       AZURE_AI_SEARCH_API_KEY: ${{ secrets.AZURE_AI_SEARCH_API_KEY }}
+      AZURE_MONGO_CONNECTION_STRING: $ {{ secrets.AZURE_MONGO_CONNECTION_STRING }}
     steps:
       - uses: actions/checkout@v3
 
