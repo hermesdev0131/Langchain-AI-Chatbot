@@ -23,14 +23,14 @@ jobs:
       uses: docker/login-action@v2
       with:
         registry: https://index.docker.io/v1/
-        username: ${{ secrets.AzureAppService_ContainerUsername_9d8d51f664c146e4a4cc9d817be72854 }}
-        password: ${{ secrets.AzureAppService_ContainerPassword_2fb90d418d854e94af33d2cf426e0bc7 }}
+        username: ${{ secrets.AzureAppService_ContainerUsername_642eecee2e81434bb37d8dd3bb94e72d }}
+        password: ${{ secrets.AzureAppService_ContainerPassword_0c190c5a82004bbbabfd9b75df6a0ea1 }}
 
     - name: Build and push container image to registry
       uses: docker/build-push-action@v3
       with:
         push: true
-        tags: index.docker.io/${{ secrets.AzureAppService_ContainerUsername_9d8d51f664c146e4a4cc9d817be72854 }}/langchain-chatbot-docker:${{ github.sha }}
+        tags: index.docker.io/${{ secrets.AzureAppService_ContainerUsername_642eecee2e81434bb37d8dd3bb94e72d }}/mcr.microsoft.com/appsvc/staticsite:${{ github.sha }}
         file: ./Dockerfile
 
   deploy:
@@ -47,5 +47,5 @@ jobs:
       with:
         app-name: 'AI-Chatbot-Server'
         slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_d8bb143a640249aeab7163ae70952b9e }}
-        images: 'index.docker.io/${{ secrets.AzureAppService_ContainerUsername_9d8d51f664c146e4a4cc9d817be72854 }}/langchain-chatbot-docker:${{ github.sha }}'
+        publish-profile: ${{ secrets.AzureAppService_PublishProfile_6cafc01d1a704500a5bebcee5c81a552 }}
+        images: 'index.docker.io/${{ secrets.AzureAppService_ContainerUsername_642eecee2e81434bb37d8dd3bb94e72d }}/mcr.microsoft.com/appsvc/staticsite:${{ github.sha }}'
