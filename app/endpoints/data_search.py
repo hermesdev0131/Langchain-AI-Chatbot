@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-@router.get("/data_search")
+@router.get("/data_search") #TODO Update for provider implementation (zilliz only)
 async def search_data(query: str, limit: int = 100, radius: float = 0.8):
     """
     Generate a text embedding for the query, search for similar entries in the vectordb,

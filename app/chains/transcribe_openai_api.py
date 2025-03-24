@@ -6,7 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-async def transcribe_audio(self, file: "UploadFile") -> str:
+async def transcribe(self, file: "UploadFile") -> str:
     # Read the uploaded file (assumes file is of type UploadFile)
     try:
         contents = await file.read()

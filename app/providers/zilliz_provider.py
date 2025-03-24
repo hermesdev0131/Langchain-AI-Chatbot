@@ -5,9 +5,6 @@ from app.config import settings
 from app.chains import *
 import logging
 from fastapi import UploadFile
-import aiofiles
-import tempfile
-import os
 from openai import OpenAI
 
 logger = logging.getLogger(__name__)
@@ -23,7 +20,7 @@ class ZillizProvider(BaseProvider):
         return None, cached_embeddings
 
     async def initialize_retrieval_chain(self):
-        return initialize_retrieval_chain_zilliz
+        return await initialize_retrieval_chain_zilliz()
     
     async def initialize_ingest_chain(self):
         pass #TODO
@@ -46,4 +43,4 @@ class ZillizProvider(BaseProvider):
         return response.json()
     
     async def transcribe_audio(self, file: "UploadFile") -> str:
-        return await transcribe_audio(self, file)
+        return await transcribe_openai_api(self, file)

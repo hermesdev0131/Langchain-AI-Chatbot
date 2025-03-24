@@ -5,7 +5,8 @@ from .translation_chain_azure import initialize_translation_chain as initialize_
 from .vector_store_azure import initialize_vector_store_azure
 from .ingest_chain_azure import initialize_ingest_chain
 from .delete_documents_azure import delete_document, delete_all_documents
-from .transcribe_audio import transcribe_audio
+from .transcribe_openai_api import transcribe as transcribe_openai_api
+from .transcribe_azure import transcribe as transcribe_azure
 
 __all__ = [
     "initialize_retrieval_chain_zilliz",
@@ -14,7 +15,8 @@ __all__ = [
     "initialize_translation_chain_openai_api",
     "initialize_translation_chain_azure",
     "initialize_ingest_chain",
-    "transcribe_audio",
+    "transcribe_openai_api",
+    "transcribe_azure",
     "delete_document",
     "delete_all_documents",
 ]

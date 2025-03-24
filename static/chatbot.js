@@ -56,20 +56,15 @@
   async function startRecording() {
     try {
       mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(mediaStream);
-      audioChunks = [];
-
-      mediaRecorder.ondataavailable = event => {
-        if (event.data.size > 0) audioChunks.push(event.data);
-      };
-
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        await sendAudioToServer(audioBlob);
-        stopMicrophoneStream();
-      };
-
-      mediaRecorder.start();
+      // Initialize RecordRTC to record audio as WAV
+      recorder = RecordRTC(mediaStream, {
+        type: 'audio',
+        mimeType: 'audio/wav',
+        recorderType: StereoAudioRecorder, // Use StereoAudioRecorder
+        desiredSampRate: 16000,            // Set sample rate to 16 kHz
+        numberOfAudioChannels: 1           // Record mono audio
+      });
+      recorder.startRecording();
       isRecording = true;
       console.log("Recording started...");
 
@@ -87,9 +82,13 @@
   }
 
   // Stop audio recording
-  function stopRecording() {
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
-      mediaRecorder.stop();
+  async function stopRecording() {
+    if (recorder) {
+      await recorder.stopRecording(() => {
+        const audioBlob = recorder.getBlob();
+        sendAudioToServer(audioBlob);
+        stopMicrophoneStream();
+      });
       isRecording = false;
       console.log("Recording stopped.");
     }
@@ -105,7 +104,7 @@
   // Send recorded audio to server for transcription
   async function sendAudioToServer(audioBlob) {
     const formData = new FormData();
-    formData.append("file", audioBlob, "audio.webm");
+    formData.append("file", audioBlob, "audio.wav");
     try {
       const response = await fetch('/api/transcribe', {
         method: 'POST',

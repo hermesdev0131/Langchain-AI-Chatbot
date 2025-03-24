@@ -12,3 +12,4 @@ python-multipart
 uvicorn
 python-docx
 motor
+azure-cognitiveservices-speech

@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     AZURE_OPENAI_API_KEY: str
     AZURE_AI_SEARCH_ENDPOINT: str
     AZURE_AI_SEARCH_API_KEY: str
+    AZURE_SPEECH_ENDPOINT: str
+    AZURE_SPEECH_API_KEY: str
     AZURE_MONGO_CONNECTION_STRING: str
     AZURE_MONGO_DATABASE_NAME: str = "chatbot-cosmos-mongo-db"
     AZURE_MODEL_NAME:str = "gpt-4o-mini"

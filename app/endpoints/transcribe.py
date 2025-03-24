@@ -27,8 +27,6 @@ async def transcribe_audio(request: Request, file: UploadFile = File(...)):
     request_timestamps.append(current_time)
     user_requests[user_ip] = request_timestamps
 
-    # Instead of directly handling transcription here,
-    # delegate to the provider's transcribe_audio method.
     try:
         provider = request.app.state.provider
         transcript_text = await provider.transcribe_audio(file)
