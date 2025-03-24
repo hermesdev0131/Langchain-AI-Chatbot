@@ -123,7 +123,7 @@
     }
   }
 
-  // Display FAQs from server
+// Display FAQs from server
 async function displayFAQs() {
   try {
     const response = await fetch('/api/faqs');
@@ -131,17 +131,7 @@ async function displayFAQs() {
     const faqData = await response.json();
     console.log(faqData);
 
-    const faqQuestions = [];
-    if (faqData && Array.isArray(faqData.data)) {
-      faqData.data.forEach(companyObj => {
-        // Use the correct property name: "faq"
-        if (companyObj.faq && Array.isArray(companyObj.faq)) {
-          companyObj.faq.forEach(faq => {
-            faqQuestions.push(faq);
-          });
-        }
-      });
-    }
+    const faqQuestions = Array.isArray(faqData) ? faqData : [];
 
     const faqContainer = document.createElement('div');
     faqContainer.className = 'faq-container';

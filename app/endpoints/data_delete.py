@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import JSONResponse
-from app.chains.delete_documents import delete_document, delete_all_documents
+from app.chains.delete_documents_azure import delete_document, delete_all_documents
 import logging
 
 logger = logging.getLogger(__name__)

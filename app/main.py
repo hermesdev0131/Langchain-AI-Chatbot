@@ -5,7 +5,6 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
-from openai import OpenAI
 from app import *
 
 logger = logging.getLogger(__name__)
@@ -17,7 +16,7 @@ async def lifespan(app: FastAPI):
     # Choose the provider based on configuration
     if settings.PROVIDER.lower() == "azure":
         provider = AzureProvider()
-    elif settings.VECTORDB_PROVIDER.lower() == "zilliz":
+    elif settings.PROVIDER.lower() == "zilliz":
         provider = ZillizProvider()
     else:
         raise ValueError("Unsupported VECTORDB_PROVIDER value in settings.")

@@ -1,7 +1,6 @@
 from azure.search.documents.aio import SearchClient
 from azure.core.credentials import AzureKeyCredential
 from app.config import settings
-from fastapi.responses import JSONResponse
 
 async def delete_document(document_id: str) -> dict:
     search_client = SearchClient(

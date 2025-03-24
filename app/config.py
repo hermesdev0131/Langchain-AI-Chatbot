@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 from typing import ClassVar
 
 class Settings(BaseSettings):
-    PROVIDER: str = "azure"
+    PROVIDER: str = "azure" # azure or zilliz
     SYSTEM_PROMPT: str = (
         "Please answer the question below in up to 5 sentences (not including any extra links), or give information, following these rules:\n"
         "1. Only use information explicitly contained in the context.\n"

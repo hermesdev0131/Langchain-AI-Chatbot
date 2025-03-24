@@ -20,6 +20,11 @@ class BaseProvider(ABC):
         pass
 
     @abstractmethod
+    async def initialize_translation_chain(self):
+        """Initialize and return translation chain."""
+        pass
+
+    @abstractmethod
     async def query_faqs(self) -> dict:
         """Query FAQs and return results."""
         pass

@@ -9,7 +9,6 @@ __all__ = [
     # The exported names from chains
     "initialize_retrieval_chain_azure",
     "initialize_retrieval_chain_zilliz",
-    "initialize_translation_chain",
     "initialize_ingest_chain",
     "initialize_vector_store_azure",
     "delete_document",

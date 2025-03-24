@@ -7,13 +7,51 @@ import logging
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+def extract_faq_texts(data: dict) -> list:
+    """
+    Extracts FAQ texts from the provider's response.
+    Handles cases where the 'faq' field may be a string, a dict, or a list.
+    """
+    faq_texts = []
+    for record in data.get("data", []):
+        faq_val = record.get("faq")
+        if faq_val:
+            if isinstance(faq_val, list):
+                for item in faq_val:
+                    if isinstance(item, dict):
+                        faq_texts.append(item.get("heading", "").strip())
+                    else:
+                        faq_texts.append(str(item).strip())
+            elif isinstance(faq_val, dict):
+                faq_texts.append(faq_val.get("heading", "").strip())
+            else:
+                faq_texts.append(str(faq_val).strip())
+    return faq_texts
+
+def extract_translated_text(result) -> str:
+    try:
+        if isinstance(result, dict):
+            # Try "heading", then fallback to "content"
+            text = result.get("heading", "") or result.get("content", "")
+        elif hasattr(result, "dict"):
+            data = result.dict()
+            text = data.get("heading", "") or data.get("content", "")
+        else:
+            text = result
+        return text.strip() if isinstance(text, str) else str(text).strip()
+    except Exception as e:
+        logger.error(f"Error processing translation result: {e}")
+        return ""
+
+
 @router.get("/faqs")
 async def get_faqs(request: Request):
     provider = request.app.state.provider
-    faqs = await provider.query_faqs()
-    logger.info("faq data: %s", faqs)
-
-    return JSONResponse(faqs)
+    data = await provider.query_faqs()
+    logger.info("FAQ data: %s", data)
+    # Use the unified helper to extract FAQs as a list of strings.
+    faq_texts = extract_faq_texts(data)
+    return JSONResponse(faq_texts)
 
 @router.get("/faqs/translate")
 async def translate_faqs(request: Request, lang: str = 'en'):
@@ -22,34 +60,26 @@ async def translate_faqs(request: Request, lang: str = 'en'):
     
     provider = request.app.state.provider
     data = await provider.query_faqs()
-    faq_questions = [record.get("faq") for record in data.get("data", []) if record.get("faq")]
+    # Get a unified list of FAQ texts.
+    faq_texts = extract_faq_texts(data)
 
+    # If English is selected, return the FAQs as is.
     if target_lang == 'en':
-        return JSONResponse(faq_questions)
+        return JSONResponse(faq_texts)
 
     try:
         translation_chain = request.app.state.translation_chain
     except AttributeError:
         raise HTTPException(status_code=500, detail="Translation chain not initialized.")
 
+    # Launch translation tasks concurrently.
     tasks = [
         asyncio.to_thread(translation_chain.invoke, {"faq": faq, "target_lang": target_lang})
-        for faq in faq_questions
+        for faq in faq_texts
     ]
     results = await asyncio.gather(*tasks)
-    
-    translated_faqs = []
-    for result in results:
-        logger.info(f"Translation result: {result}")
-        try:
-            if hasattr(result, "dict"):
-                text = result.dict().get("content", "")
-            else:
-                text = result
-            translated_faqs.append(text.strip())
-        except Exception as e:
-            logger.error(f"Error processing translation result: {e}")
-            translated_faqs.append("")
-            
+
+    # Extract translated text using the helper.
+    translated_faqs = [extract_translated_text(result) for result in results]
     logger.info(f"Translated {translated_faqs} FAQs to {target_lang}")
     return JSONResponse(translated_faqs)
