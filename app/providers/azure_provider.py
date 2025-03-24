@@ -51,4 +51,4 @@ class AzureProvider(BaseProvider):
         return {"data": transformed}
 
     async def transcribe_audio(self, file: "UploadFile") -> str:
-        return await transcribe_audio()
+        return await transcribe_audio(self, file)
