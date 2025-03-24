@@ -1,6 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy container app to Azure Web App - AI-Chatbot-Server
 
 on:
@@ -30,7 +27,7 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         push: true
-        tags: index.docker.io/${{ secrets.AzureAppService_ContainerUsername_642eecee2e81434bb37d8dd3bb94e72d }}
+        tags: ${{ secrets.AzureAppService_ContainerUsername_642eecee2e81434bb37d8dd3bb94e72d }}/ai-chatbot-server:latest
         file: ./Dockerfile
 
   deploy:
@@ -48,4 +45,4 @@ jobs:
         app-name: 'AI-Chatbot-Server'
         slot-name: 'production'
         publish-profile: ${{ secrets.AzureAppService_PublishProfile_6cafc01d1a704500a5bebcee5c81a552 }}
-        images: 'index.docker.io/${{ secrets.AzureAppService_ContainerUsername_642eecee2e81434bb37d8dd3bb94e72d }}'
+        images: '${{ secrets.AzureAppService_ContainerUsername_642eecee2e81434bb37d8dd3bb94e72d }}/ai-chatbot-server:latest'
