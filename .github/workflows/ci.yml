@@ -20,6 +20,8 @@ jobs:
       AZURE_AI_SEARCH_ENDPOINT: ${{ secrets.AZURE_AI_SEARCH_ENDPOINT }}
       AZURE_AI_SEARCH_API_KEY: ${{ secrets.AZURE_AI_SEARCH_API_KEY }}
       AZURE_MONGO_CONNECTION_STRING: $ {{ secrets.AZURE_MONGO_CONNECTION_STRING }}
+      AZURE_SPEECH_ENDPOINT: $ {{ secrets.AZURE_SPEECH_ENDPOINT }}
+      AZURE_SPEECH_API_KEY: $ {{ secrets.AZURE_SPEECH_API_KEY }}
     steps:
       - uses: actions/checkout@v3
 
