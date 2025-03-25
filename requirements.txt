@@ -13,3 +13,4 @@ uvicorn
 python-docx
 motor
 azure-cognitiveservices-speech
+pydantic_settings

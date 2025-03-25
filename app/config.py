@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     AZURE_SPEECH_API_KEY: str
     AZURE_MONGO_CONNECTION_STRING: str
     AZURE_MONGO_DATABASE_NAME: str = "chatbot-cosmos-mongo-db"
-    AZURE_MODEL_NAME:str = "gpt-4o-mini"
+    AZURE_MODEL_NAME: str = "gpt-4o-mini"
     AZURE_DEPLOYMENT_NAME: str = "gpt-4o-mini"
     AZURE_API_VERSION: str = "2024-07-01-preview"
     AZURE_INDEX_NAME: str = "chatbot-index"
