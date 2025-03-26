@@ -8,9 +8,8 @@ router = APIRouter()
 
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "..", "..", "static", "templates"))
 
-@router.get("/", response_class=HTMLResponse)
+@router.get("/wichita", response_class=HTMLResponse)
 async def serve_index(request: Request):
-    request.app.state.provider = request.app.state.azure_provider
-    template = {**settings.WICHITA_TEMPLATE, "request": request}
+    template = {**settings.WICHITA_TEMPLATE, "request": request, "api_base_url": "/wichita/api"}
 
     return templates.TemplateResponse("index.html", template)

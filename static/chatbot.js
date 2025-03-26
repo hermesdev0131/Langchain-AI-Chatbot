@@ -106,7 +106,7 @@
     const formData = new FormData();
     formData.append("file", audioBlob, "audio.wav");
     try {
-      const response = await fetch('/api/transcribe', {
+      const response = await fetch(`${apiBaseUrl}/transcribe`, {
         method: 'POST',
         body: formData
       });
@@ -125,7 +125,7 @@
 // Display FAQs from server
 async function displayFAQs() {
   try {
-    const response = await fetch('/api/faqs');
+    const response = await fetch(`${apiBaseUrl}/faqs`);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const faqData = await response.json();
     console.log(faqData);
@@ -206,7 +206,7 @@ async function switchFaqLanguage() {
   const langDropdown = document.getElementById("faq-language");
   const selectedLang = langDropdown.value;
   try {
-    const response = await fetch(`/api/faqs/translate?lang=${selectedLang}`);
+    const response = await fetch(`${apiBaseUrl}/faqs/translate?lang=${selectedLang}`);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const translatedFaqs = await response.json();
     const faqQuestionsContainer = document.getElementById("faq-questions");
@@ -290,7 +290,7 @@ async function switchFaqLanguage() {
     chatInput.value = '';
     thinkingDiv.classList.remove('hidden');
     try {
-      const response = await fetch('/api/qa', {
+      const response = await fetch(`${apiBaseUrl}/qa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userMessage: message }),
@@ -518,7 +518,7 @@ async function switchFaqLanguage() {
       try {
         const formData = new FormData();
         formData.append("file", file);
-        const response = await fetch("/api/ingest", {
+        const response = await fetch(`${apiBaseUrl}/ingest`, {
           method: "POST",
           body: formData
         });

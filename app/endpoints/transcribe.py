@@ -28,7 +28,7 @@ async def transcribe_audio(request: Request, file: UploadFile = File(...)):
     user_requests[user_ip] = request_timestamps
 
     try:
-        provider = request.app.state.provider
+        provider = request.state.provider
         transcript_text = await provider.transcribe_audio(file)
     except Exception as e:
         logger.error(f"Error during transcription: {e}")

@@ -22,7 +22,7 @@ async def handle_post(request: Request):
     logger.info(f"Received user query: {user_message}")
     
     try:
-        result = await request.app.state.provider.answer_query(user_message)
+        result = await request.state.provider.answer_query(user_message)
         logger.info(f"Answer: {result}")
     except Exception as e:
         logger.error("Error processing retrieval chain: %s", e)

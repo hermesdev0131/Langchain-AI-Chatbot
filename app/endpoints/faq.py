@@ -46,7 +46,7 @@ def extract_translated_text(result) -> str:
 
 @router.get("/faqs")
 async def get_faqs(request: Request):
-    provider = request.app.state.provider
+    provider = request.state.provider
     data = await provider.query_faqs()
     logger.info("FAQ data: %s", data)
     # Use the unified helper to extract FAQs as a list of strings.
@@ -60,7 +60,7 @@ async def translate_faqs(request: Request, lang: str = 'en'):
     logger.info(f"Translating FAQs to {lang}")
     target_lang = lang.lower()
     
-    provider = request.app.state.provider
+    provider = request.state.provider
     data = await provider.query_faqs()
     # Get a unified list of FAQ texts.
     faq_texts = extract_faq_texts(data)
@@ -69,14 +69,9 @@ async def translate_faqs(request: Request, lang: str = 'en'):
     if target_lang == 'en':
         return JSONResponse(faq_texts)
 
-    try:
-        translation_chain = request.app.state.provider.translation_chain
-    except AttributeError:
-        raise HTTPException(status_code=500, detail="Translation chain not initialized.")
-
     # Launch translation tasks concurrently.
     tasks = [
-        asyncio.to_thread(translation_chain.invoke, {"faq": faq, "target_lang": target_lang})
+        asyncio.to_thread(provider.translation_chain.invoke, {"faq": faq, "target_lang": target_lang})
         for faq in faq_texts
     ]
     results = await asyncio.gather(*tasks)
