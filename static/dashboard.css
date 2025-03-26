@@ -113,3 +113,45 @@ body {
     width: 100%;
     /* Ensure it spans the full width */
   }
+
+  /* Navbar container */
+.chatbot-switch {
+  display: flex;
+  justify-content: flex-start; /* or space-between, center, etc., depending on your preference */
+  align-items: center;
+  background-color: var(--primary-color, #333);
+  padding: 0.5rem 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Optionally, you can rename .chatbot-switch to a <nav> element for semantic correctness */
+
+/* Navbar buttons */
+.chatbot-switch button {
+  background: none;
+  border: 1px solid var(--text-color, #fff); /* visible border */
+  color: var(--text-color, #fff);
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  margin-right: 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.chatbot-switch button:last-child {
+  margin-right: 0; /* remove margin on the last button */
+}
+
+/* Hover effect */
+.chatbot-switch button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* Active or focus states */
+.chatbot-switch button:focus,
+.chatbot-switch button:active {
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.3);
+}

@@ -22,9 +22,7 @@ async def handle_post(request: Request):
     logger.info(f"Received user query: {user_message}")
     
     try:
-        # The chain wrapper is stored in app.state
-        wrapper = request.app.state.retrieval_chain_wrapper
-        result = await answer_query(user_message, wrapper)
+        result = await request.app.state.provider.answer_query(user_message)
         logger.info(f"Answer: {result}")
     except Exception as e:
         logger.error("Error processing retrieval chain: %s", e)

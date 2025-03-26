@@ -25,6 +25,11 @@ class BaseProvider(ABC):
         pass
 
     @abstractmethod
+    async def answer_query(self, query: str) -> dict:
+        """Process the query using the provider's retrieval chain and return the result."""
+        pass
+
+    @abstractmethod
     async def query_faqs(self) -> dict:
         """Query FAQs and return results."""
         pass

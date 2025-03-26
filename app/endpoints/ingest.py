@@ -19,7 +19,7 @@ async def ingest_document(request: Request, file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Failed to read file")
     
     try:
-        result = await request.app.state.ingest_chain(contents, file.filename)
+        result = await request.app.state.provider.ingest_chain(contents, file.filename)
     except Exception as e:
         logger.error("Ingestion chain error: %s", e)
         raise HTTPException(status_code=500, detail="Ingestion failed")

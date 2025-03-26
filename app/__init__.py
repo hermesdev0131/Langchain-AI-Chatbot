@@ -9,7 +9,8 @@ __all__ = [
     "ZillizProvider",
     "settings",
     # The exported names from endpoints
-    "base_router",
+    "wichita_router",
+    "wsu_router",
     "qa_router",
     "data_search_router",
     "faq_router",

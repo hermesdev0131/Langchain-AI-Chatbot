@@ -53,6 +53,8 @@ async def get_faqs(request: Request):
     faq_texts = extract_faq_texts(data)
     return JSONResponse(faq_texts)
 
+# TODO put faqs into state, memory or something
+# TODO see about launching tasks via provider class instead of on route
 @router.get("/faqs/translate")
 async def translate_faqs(request: Request, lang: str = 'en'):
     logger.info(f"Translating FAQs to {lang}")
@@ -68,7 +70,7 @@ async def translate_faqs(request: Request, lang: str = 'en'):
         return JSONResponse(faq_texts)
 
     try:
-        translation_chain = request.app.state.translation_chain
+        translation_chain = request.app.state.provider.translation_chain
     except AttributeError:
         raise HTTPException(status_code=500, detail="Translation chain not initialized.")
 

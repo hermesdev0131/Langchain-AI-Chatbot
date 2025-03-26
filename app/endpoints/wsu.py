@@ -8,8 +8,9 @@ router = APIRouter()
 
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "..", "..", "static", "templates"))
 
-@router.get("/", response_class=HTMLResponse)
+@router.get("/wsu", response_class=HTMLResponse)
 async def serve_index(request: Request):
-    template = {**settings.TEMPLATE, "request": request}
+    request.app.state.provider = request.app.state.zilliz_provider
+    template = {**settings.WSU_TEMPLATE, "request": request}
 
     return templates.TemplateResponse("index.html", template)

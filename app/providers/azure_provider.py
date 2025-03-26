@@ -1,4 +1,3 @@
-# app/providers/azure_provider.py
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
 from .base import BaseProvider
@@ -9,6 +8,7 @@ import logging
 from fastapi import UploadFile
 from openai import OpenAI
 from functools import partial
+from app.chains.retrieval_chain_azure import answer_query as answer
 
 logger = logging.getLogger(__name__)
 
@@ -23,21 +23,44 @@ class AzureProvider(BaseProvider):
         self.db = self.mongo_client[settings.AZURE_MONGO_DATABASE_NAME]
         self.faq_collection = self.db["faq"]
         self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        # These attributes will be initialized asynchronously
+        self.retrieval_chain = None
+        self.ingest_chain = None
+        self.translation_chain = None
+
+    @classmethod
+    async def create(cls):
+        """
+        Async factory method to initialize all chains upon creation.
+        """
+        instance = cls()
+        # Initialize vector store and cached embeddings once
+        vector_store, cached_embeddings = await initialize_vector_store_azure()
+        # Initialize retrieval chain and store it
+        instance.retrieval_chain = await initialize_retrieval_chain_azure(vector_store, cached_embeddings)
+        # Initialize ingest chain as a callable (using partial)
+        instance.ingest_chain = partial(ingest_chain_func, vector_store=vector_store)
+        # Initialize translation chain
+        instance.translation_chain = await initialize_translation_chain_azure()
+        return instance
 
     async def initialize_vector_store(self):
         return await initialize_vector_store_azure()
 
     async def initialize_retrieval_chain(self):
-        vector_store, cached_embeddings = await self.initialize_vector_store()
-        return await initialize_retrieval_chain_azure(vector_store, cached_embeddings)
+        # This method is kept for compatibility; retrieval_chain is set in create()
+        return self.retrieval_chain
     
     async def initialize_ingest_chain(self):
-        vector_store, _ = await self.initialize_vector_store()  # call the correct method
-        ingest_chain_callable = partial(ingest_chain_func, vector_store=vector_store)
-        return ingest_chain_callable
+        return self.ingest_chain
     
     async def initialize_translation_chain(self):
-        return await initialize_translation_chain_azure()
+        return self.translation_chain
+    
+    async def answer_query(self, query: str) -> dict:
+        # Use the retrieval chain stored on this instance.
+        result = await answer(query, self.retrieval_chain)
+        return result
 
     async def query_faqs(self) -> dict:
         cursor = self.faq_collection.find({})
@@ -50,5 +73,5 @@ class AzureProvider(BaseProvider):
             transformed.append({"faq": faq_content})
         return {"data": transformed}
 
-    async def transcribe_audio(self, file: "UploadFile") -> str:
+    async def transcribe_audio(self, file: UploadFile) -> str:
         return await transcribe_azure(self, file)

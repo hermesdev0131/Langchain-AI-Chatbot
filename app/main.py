@@ -13,18 +13,13 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     logger.info("Startup: initializing chains...")
     
-    # Choose the provider based on configuration
-    if settings.PROVIDER.lower() == "azure":
-        provider = AzureProvider()
-    elif settings.PROVIDER.lower() == "zilliz":
-        provider = ZillizProvider()
-    else:
-        raise ValueError("Unsupported VECTORDB_PROVIDER value in settings.")
+    # Initialize Azure Provider
+    azure_provider = await AzureProvider.create()
+    app.state.azure_provider = azure_provider
 
-    app.state.retrieval_chain_wrapper = await provider.initialize_retrieval_chain()
-    app.state.translation_chain = await provider.initialize_translation_chain()
-    app.state.ingest_chain = await provider.initialize_ingest_chain()
-    app.state.provider = provider  # Store provider instance for later use in routes
+    # Initialize Zilliz Provider
+    zilliz_provider = await ZillizProvider.create()
+    app.state.zilliz_provider = zilliz_provider
 
     logger.info("Chains stored in app state.")
     yield
@@ -55,7 +50,8 @@ static_folder = os.path.join(os.path.dirname(__file__), "..", "static")
 app.mount("/static", StaticFiles(directory=static_folder), name="static")
 
 # Include endpoints
-app.include_router(base_router)
+app.include_router(wichita_router)
+app.include_router(wsu_router)
 app.include_router(chatbot_router)
 app.include_router(ingest_router, prefix="/api")
 app.include_router(data_delete_router, prefix="/api")
