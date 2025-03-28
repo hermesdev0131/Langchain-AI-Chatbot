@@ -518,7 +518,7 @@ async function switchFaqLanguage() {
       try {
         const formData = new FormData();
         formData.append("file", file);
-        const response = await fetch(`${apiBaseUrl}/ingest`, {
+        const response = await fetch(`${apiBaseUrl}/ingest_document`, {
           method: "POST",
           body: formData
         });
@@ -534,6 +534,50 @@ async function switchFaqLanguage() {
       }
       // Clear the input so the same file can be re-selected if needed
       uploadInput.value = "";
+    }
+  });
+
+  // Get the URL input element
+  const urlInput = document.getElementById("urlInput");
+
+  // Helper function to validate URL
+  function isValidUrl(url) {
+    try {
+      new URL(url);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Add event listener for keypress on the URL input
+  urlInput.addEventListener("keypress", async (event) => {
+    if (event.key === "Enter") {
+      const url = urlInput.value.trim();
+      if (!isValidUrl(url)) {
+        alert("Please enter a valid URL.");
+        return;
+      }
+      try {
+        const response = await fetch(`${apiBaseUrl}/ingest_url`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ url: url })
+        });
+        const data = await response.json();
+        if (data.status === "success") {
+          alert("URL ingested successfully!");
+        } else {
+          alert("URL ingestion failed: " + data.detail);
+        }
+      } catch (error) {
+        console.error("Error ingesting URL:", error);
+        alert("Error ingesting URL.");
+      }
+      // Clear the input so a new URL can be entered
+      urlInput.value = "";
     }
   });
 

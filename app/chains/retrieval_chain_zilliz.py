@@ -1,13 +1,10 @@
 import asyncio
 import logging
 import datetime
-
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
 from langchain.prompts import ChatPromptTemplate
 from langchain_milvus import Zilliz
-from langchain.storage import InMemoryByteStore
-from langchain.embeddings import CacheBackedEmbeddings
 from langchain.docstore.document import Document
 from app.config import settings
 
@@ -25,52 +22,10 @@ class RetrievalChainWrapper:
         self.embeddings = embeddings
         self.user_queries_vectorstore = user_queries_vectorstore
 
-async def initialize_retrieval_chain() -> RetrievalChainWrapper:
-    logger.info("Starting chain initialization...")
-    
-    # 1. Create the underlying embeddings model
-    underlying_embeddings = OpenAIEmbeddings(
-        openai_api_key = settings.OPENAI_API_KEY,
-        model = settings.OPENAI_API_EMBEDDING_MODEL_NAME
-    )
-    
-    # 2. Create an in-memory byte store + a cached embedding function
-    byte_store = InMemoryByteStore()
-    cached_embeddings = CacheBackedEmbeddings.from_bytes_store(
-        underlying_embeddings,
-        byte_store,
-        namespace=settings.OPENAI_API_EMBEDDING_MODEL_NAME
-    )
-    logger.info("Cached embeddings initialized")
-    
-    # 3. Create a Zilliz vector store for retrieval from "innovation_campus"
-    #    This is for the chain's retriever
-    retriever_vectorstore = await asyncio.to_thread(
-        Zilliz,
-        embedding_function=cached_embeddings,
-        collection_name=settings.ZILLIZ_COLLECTION_NAME,  # <--- queries happen here
-        connection_args={
-            "uri": settings.ZILLIZ_URL,
-            "token": settings.ZILLIZ_AUTH_TOKEN,
-        },
-        index_params={
-            "metric_type": "COSINE",
-            "index_type": "HNSW",
-            "params": {"M": 8, "efConstruction": 64}
-        },
-        search_params={
-            "metric_type": "COSINE",
-            "params": {"ef": 10}
-        },
-        text_field="text",      # match your schema field for text
-        vector_field="vector",  # match your schema field for embeddings
-        auto_id=True,
-        drop_old=False
-    )
-    logger.info("Connected to Zilliz for retrieval")
-    
+async def initialize_retrieval_chain(vector_store, cached_embeddings) -> RetrievalChainWrapper:
+
     # 4. Create a retriever from that store
-    retriever = retriever_vectorstore.as_retriever(search_kwargs={"k": 10})
+    retriever = vector_store.as_retriever(search_kwargs={"k": 10})
     logger.info("Retriever created")
     
     # 5. Initialize LLM

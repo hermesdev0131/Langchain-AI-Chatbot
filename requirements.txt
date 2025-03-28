@@ -14,3 +14,4 @@ python-docx
 motor
 azure-cognitiveservices-speech
 pydantic_settings
+beautifulsoup4

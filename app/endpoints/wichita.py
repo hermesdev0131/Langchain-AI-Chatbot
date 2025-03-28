@@ -10,6 +10,6 @@ templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), ".
 
 @router.get("/wichita", response_class=HTMLResponse)
 async def serve_index(request: Request):
-    template = {**settings.WICHITA_TEMPLATE, "request": request, "api_base_url": "/wichita/api"}
+    template = {**settings.WICHITA_TEMPLATE, "request": request, "api_base_url": "/wichita/api", "show_dashboard": False}
 
     return templates.TemplateResponse("index.html", template)

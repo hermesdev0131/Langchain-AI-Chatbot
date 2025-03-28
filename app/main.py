@@ -64,9 +64,11 @@ async def default_route():
 # -------------------------------------------------
 def set_azure_provider(request: Request):
     request.state.provider = request.app.state.azure_provider
+    request.state.template = settings.WICHITA_TEMPLATE
 
 def set_zilliz_provider(request: Request):
     request.state.provider = request.app.state.zilliz_provider
+    request.state.template = settings.WSU_TEMPLATE
 
 # -------------------------------------------------
 # Provider-specific API routers

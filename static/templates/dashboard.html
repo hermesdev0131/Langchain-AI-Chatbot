@@ -29,7 +29,7 @@
 
 <body>
   <div class="chatbot-switch">
-    <button type="button" onclick="window.location.href='/'">Wichita Chatbot</button>
+    <button type="button" onclick="window.location.href='/wichita'">Wichita Chatbot</button>
     <button type="button" onclick="window.location.href='/wsu'">WSU Chatbot</button>
   </div>
 
@@ -38,28 +38,30 @@
     <img src="{{ hero_overlay_img }}" alt="{{ hero_alt }}" class="hero-overlay">
   </header>
 
-  <!-- Dashboard Container -->
   <section class="dashboard-container">
-    <h1>Data Analytics Dashboard</h1>
-
-    <!-- Search Bar -->
-    <div class="search-container">
-      <input type="text" id="searchTerm" placeholder="Enter search term..." />
-      <button id="searchButton">Search</button>
-    </div>
-
-    <div class="input-parameters">
-      <label for="limitInput">Query Limit:</label>
-      <input type="number" id="limitInput" placeholder="Enter query limit" value=100 />
-
-      <label for="radiusInput">Accuracy:</label>
-      <input type="number" id="radiusInput" step="0.1" placeholder="Enter accuracy" value=0.7 />
-    </div>
-
-    <!-- Analytics Chart -->
-    <div class="chart-container">
-      <canvas id="analyticsChart" width="800" height="400"></canvas>
-    </div>
+    {% if show_dashboard %}
+      <h1>Data Analytics Dashboard</h1>
+      <!-- Full Dashboard Content -->
+      <div class="search-container">
+        <input type="text" id="searchTerm" placeholder="Enter search term..." />
+        <button id="searchButton">Search</button>
+      </div>
+  
+      <div class="input-parameters">
+        <label for="limitInput">Query Limit:</label>
+        <input type="number" id="limitInput" placeholder="Enter query limit" value="100" />
+  
+        <label for="radiusInput">Accuracy:</label>
+        <input type="number" id="radiusInput" step="0.1" placeholder="Enter accuracy" value="0.7" />
+      </div>
+  
+      <div class="chart-container">
+        <canvas id="analyticsChart" width="800" height="400"></canvas>
+      </div>
+    {% else %}
+      <h1>Dashboard Under Development</h1>
+      <p>The dashboard feature for Wichita is currently under development. Please check back soon for updates.</p>
+    {% endif %}
   </section>
 
   <!-- Chart.js and Script -->

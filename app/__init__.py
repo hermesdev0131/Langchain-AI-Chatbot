@@ -1,7 +1,7 @@
 # app/__init__.py
 
 from .config import settings
-from app.endpoints import *  # This pulls in __all__ from app/endpoints/__init__.py
+from app.endpoints import *
 from app.providers import *
 
 __all__ = [

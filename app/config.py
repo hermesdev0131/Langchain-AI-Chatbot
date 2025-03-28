@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     ZILLIZ_URL: str
     ZILLIZ_COLLECTION_NAME: str = "innovation_campus"
     ZILLIZ_USER_QUERIES_COLLECTION_NAME: str = "user_queries"
+    ZILLIZ_VECTOR_FIELD_NAME: str = "vector"
+    ZILLIZ_VECTOR_TEXT_FIELD_NAME: str = "vector_content"
+
     AZURE_OPENAI_ENDPOINT: str
     AZURE_OPENAI_API_KEY: str
     AZURE_AI_SEARCH_ENDPOINT: str
@@ -50,7 +53,7 @@ class Settings(BaseSettings):
         "unified_color_light": "#ffd963",
         "unified_color_dark": "#bf9104",
         "unified_color_secondary": "#000000",
-        "text_color": "#FFFFFF",
+        "text_color": "#000000",
     }
     WICHITA_TEMPLATE: ClassVar[dict] = {
         "title": "Wichita Chatbot Dashboard",

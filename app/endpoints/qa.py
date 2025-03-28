@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 import logging
-from app.chains.retrieval_chain_azure import answer_query
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
