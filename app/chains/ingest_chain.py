@@ -82,8 +82,7 @@ async def initialize_ingest_chain_document(file_contents: bytes, filename: str, 
     doc = Document(
         page_content=text,
         metadata={
-            "filename": filename,
-            "file_path": filename,
+            "name": filename,
             "timestamp": int(datetime.datetime.now().timestamp())
         }
     )
@@ -129,7 +128,7 @@ async def initialize_ingest_chain_url(url: str, vector_store) -> dict:
     doc = Document(
         page_content=text,
         metadata={
-            "url": url,
+            "name": url,
             "timestamp": int(datetime.datetime.now().timestamp())
         }
     )
