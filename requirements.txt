@@ -10,6 +10,7 @@ langchain-openai
 PyPDF2
 python-multipart
 uvicorn
+gunicorn
 python-docx
 motor
 azure-cognitiveservices-speech
