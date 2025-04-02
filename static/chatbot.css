@@ -1,3 +1,8 @@
+img {
+  max-width: 100%;
+  height: auto;
+}
+
 /* Chatbot Button and Popup */
 .chatbot {
   font-family: 'Roboto', sans-serif;
