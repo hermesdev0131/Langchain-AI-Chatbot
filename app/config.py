@@ -30,15 +30,14 @@ class Settings(BaseSettings):
     CHUNK_SIZE: int = 4000
     CHUNK_OVERLAP: int = 400
     PORT: int = 8000
+    MAX_GENERATED_SENTENCES: int = 5
     SYSTEM_PROMPT: str = (
-        "Please answer the question below in up to 5 sentences (not including any extra links), or give information, following these rules:\n"
         "1. Only use information explicitly contained in the context.\n"
         "2. If the context contains relevant links (for images, videos, or external pages) that relate to any topic, include them exactly as provided.\n"
         "3. Include image, video, and external links related to the question, even if not explicitly requested. Prioritize image and video links.\n"
         "4. Do not fabricate or guess any links that are not in the context.\n"
-        "6. If there isn’t enough detail, respond with: \"I do not have enough information from the provided context.\"\n"
-        "7. When including links in your responses, please output the full URL in plain text rather than using HTML or Markdown anchor formatting.\n"
-        "8. When including images, put them on a new line"
+        "6. When including links in your responses, output the full URL in plain text.\n"
+        "7. When including images, put them on a new line."
     )
 
     WSU_TEMPLATE: ClassVar[dict] = {
