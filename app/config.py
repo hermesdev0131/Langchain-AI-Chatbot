@@ -33,11 +33,11 @@ class Settings(BaseSettings):
     MAX_GENERATED_SENTENCES: int = 5
     SYSTEM_PROMPT: str = (
         "1. Only use information explicitly contained in the context.\n"
-        "2. If the context contains relevant links (for images, videos, or external pages) that relate to any topic, include them exactly as provided.\n"
-        "3. Include image, video, and external links related to the question, even if not explicitly requested. Prioritize image and video links.\n"
-        "4. Do not fabricate or guess any links that are not in the context.\n"
-        "6. When including links in your responses, output the full URL in plain text.\n"
-        "7. When including images, put them on a new line."
+        "2. Do not fabricate or guess any links that are not in the context.\n"
+        "3. Keep all [embed] tags exactly as provided in the input, and do not alter or replace the [embed] text with any other labels.\n"
+        "4. When including links in your responses, output the full URL in plain text but do not alter links with [embed] tag.\n"
+        "5. When including images, always put them on a new line.\n"
+        "6. When including videos, do not output any empty parentheses; instead, display the iframe on its own line without extra punctuation."
     )
 
     WSU_TEMPLATE: ClassVar[dict] = {

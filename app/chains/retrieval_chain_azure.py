@@ -21,6 +21,8 @@ async def initialize_retrieval_chain(vector_store, cached_embeddings) -> Retriev
     logger.info("Starting chain initialization...")
 
     retriever = vector_store.as_retriever()
+    retriever.k = 4 # Set the number of documents to retrieve
+
     logger.info("Retriever created")
     
     # Initialize the LLM (using Azure OpenAI via ChatOpenAI)

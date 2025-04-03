@@ -336,87 +336,88 @@ async function switchFaqLanguage() {
     scrollToBottom();
   }
 
-  // Replace raw URLs and markdown links with embedded content
-  function replaceLinks(text) {
-    if (!text || typeof text !== 'string' || text.trim() === "") {
-      console.error("replaceLinks received empty or invalid text.");
-      return "Please try again";
-    }
-    try {
-      const DEBUG = false; // Disable debugging logs in production
-      text = text.replace(/\(\s*((https?:\/\/|www\.)[^\s]+)/g, '$1');
+// Helper: transform a YouTube URL into its embed form.
+function getYoutubeEmbedUrl(url) {
+  const regex = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+  const match = url.match(regex);
+  return match ? `https://www.youtube.com/embed/${match[1]}` : url;
+}
 
-      // Helper functions
-      const getVideoType = link => {
-        if (/\.mp4$/i.test(link)) return "video/mp4";
-        if (/\.webm$/i.test(link)) return "video/webm";
-        if (/\.ogg$/i.test(link)) return "video/ogg";
-        return "";
-      };
-
-      const getYoutubeVideoId = url => {
-        const regex = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-        const match = url.match(regex);
-        if (DEBUG) console.log("getYoutubeVideoId - URL:", url, "ID:", match ? match[1] : "none");
-        return match ? match[1] : null;
-      };
-
-      // Process markdown links
-      text = text.replace(/\[([^\]]+)\]\(([\s\S]+?)\)/g, (match, linkText, linkContent) => {
-        let url = linkContent.trim();
-        const anchorMatch = url.match(/<a\s+[^>]*href="([^"]+)"[^>]*>/i);
-        if (anchorMatch) {
-          url = anchorMatch[1];
-          if (DEBUG) console.log("Extracted URL from anchor tag:", url);
-        }
-        url = url.trim().replace(/^\(|\)$/g, '').replace(/[\)\.,!?]+$/g, '');
-        const youtubeVideoId = getYoutubeVideoId(url);
-        if (youtubeVideoId) {
-          return `<iframe width="560" height="315" src="https://www.youtube.com/embed/${youtubeVideoId}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="max-width: 100%; border-radius: 8px; margin-top: 5px;"></iframe>`;
-        }
-        if (/\.(mp4|webm|ogg)$/i.test(url)) {
-          return `<video controls style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 5px;">
-                    <source src="${url}" type="${getVideoType(url)}">
-                    Your browser does not support the video tag.
-                  </video>`;
-        }
-        return match;
-      });
-
-      // Process raw URLs in plain text segments only
-      const parts = text.split(/(<[^>]+>)/);
-      for (let i = 0; i < parts.length; i++) {
-        if (!parts[i].startsWith("<")) {
-          parts[i] = parts[i].replace(/((https?:\/\/|www\.)[^\s]+)/g, match => {
-            match = match.trim().replace(/^\(+/, '').replace(/[\)\.,!?]+$/g, '');
-            let link = match.startsWith('http') ? match : 'http://' + match;
-            const youtubeVideoId = getYoutubeVideoId(link);
-            if (youtubeVideoId) {
-              return `<iframe width="560" height="315" src="https://www.youtube.com/embed/${youtubeVideoId}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="max-width: 100%; border-radius: 8px; margin-top: 5px;"></iframe>`;
-            }
-            if (/\.(jpeg|jpg|png|gif|bmp|webp)$/i.test(link)) {
-              return `<img src="${link}" alt="Image" style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 5px;">`;
-            }
-            if (/\.(mp4|webm|ogg)$/i.test(link)) {
-              return `<video controls style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 5px;">
-                        <source src="${link}" type="${getVideoType(link)}">
-                        Your browser does not support the video tag.
-                      </video>`;
-            }
-            return `<a href="${link}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline">
-                      <img src="static/img/icons/redirect-grad.png" alt="External Link" style="width: 20px; height: 20px; vertical-align: middle;">
-                      <img src="static/img/icons/open-eye-grad.png" alt="External Link" style="width: 22px; height: 22px; vertical-align: middle; cursor: pointer;" onclick="toggleLinkText(event, this, '${link}')">
-                      <span class="hidden-link-text" style="display: none; margin-left: 5px;">${link}</span>
-                    </a>`;
-          });
-        }
-      }
-      return parts.join("");
-    } catch (error) {
-      console.error("Error in replaceLinks:", error);
-      return "Please try again";
-    }
+// Helper: returns an iframe embed for known providers; otherwise, returns a plain clickable link.
+function embedUrl(url) {
+  // Automatically embed YouTube links.
+  if (url.includes("youtube.com") || url.includes("youtu.be")) {
+    return `<iframe width="560" height="315" src="${getYoutubeEmbedUrl(url)}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="max-width: 100%; border-radius: 8px; margin-top: 5px;"></iframe>`;
   }
+
+  return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline;">${url}</a>`;
+}
+
+// Helper: returns a plain clickable link (without embedding) regardless of provider.
+function plainLink(url) {
+  return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline;">${url}</a>`;
+}
+
+// Main function: process both markdown-style links and raw URLs.
+function replaceLinks(text) {
+  if (!text || typeof text !== 'string' || text.trim() === "") {
+    console.error("replaceLinks received empty or invalid text.");
+    return "Please try again";
+  }
+  try {
+    // Remove any extraneous parentheses around URLs.
+    text = text.replace(/\(\s*((https?:\/\/|www\.)[^\s]+)/g, '$1');
+
+    // Process markdown links: e.g. [label](url)
+    text = text.replace(/\[([^\]]+)\]\(([\s\S]+?)\)/g, (match, linkText, linkContent) => {
+      let url = linkContent.trim().replace(/^\(|\)$/g, '').replace(/[\)\.,!?]+$/g, '');
+      // If the link text starts with "embed" (case-insensitive), output iframe and then a plain link on a new line.
+      if (linkText.trim().toLowerCase().startsWith("embed")) {
+        return `<iframe width="660" height="415" src="${url}" frameborder="0" allowfullscreen style="max-width: 100%; margin-top: 5px;"></iframe><br>${plainLink(url)}`;
+      }
+      // Otherwise, delegate to the default embedUrl helper.
+      console.log("embed (markdown):", url);
+      return embedUrl(url);
+    });
+
+    // Extra pass: Process cases where [embed] precedes an <a> tag.
+    text = text.replace(
+      /\[embed\]\s*(<a\s+href="([^"]+)"[^>]*>[\s\S]*?<\/a>)/gi,
+      (_, fullAnchor, url) => {
+        url = url.trim();
+        console.log("embed anchor:", url);
+        return `<iframe width="660" height="415" src="${url}" frameborder="0" allowfullscreen style="max-width: 100%; margin-top: 5px;"></iframe><br>${plainLink(url)}`;
+      }
+    );
+
+    // First pass: Process raw URLs with an explicit [embed] marker.
+    text = text.replace(
+      /\[embed\][\s:]*((https?:\/\/|www\.)[^\s]+)/gi,
+      (_, urlMatch) => {
+        let url = urlMatch.trim().replace(/^\(+/, '').replace(/[\)\.,!?]+$/g, '');
+        url = url.startsWith('http') ? url : 'http://' + url;
+        console.log("embed (raw):", url);
+        return `<iframe width="660" height="415" src="${url}" frameborder="0" allowfullscreen style="max-width: 100%; margin-top: 5px;"></iframe><br>${plainLink(url)}`;
+      }
+    );
+
+    // Second pass: Process remaining raw URLs in plain text.
+    const parts = text.split(/(<[^>]+>)/);
+    for (let i = 0; i < parts.length; i++) {
+      if (!parts[i].startsWith("<")) {
+        parts[i] = parts[i].replace(/((https?:\/\/|www\.)[^\s]+)/gi, (match, urlMatch) => {
+          let url = urlMatch.trim().replace(/^\(+/, '').replace(/[\)\.,!?]+$/g, '');
+          url = url.startsWith('http') ? url : 'http://' + url;
+          return embedUrl(url);
+        });
+      }
+    }
+    return parts.join("");
+  } catch (error) {
+    console.error("Error in replaceLinks:", error);
+    return "Please try again";
+  }
+}
 
   // Expose toggleLinkText to global scope for inline onclick usage
   window.toggleLinkText = function(event, imgElement, link) {
@@ -432,72 +433,49 @@ async function switchFaqLanguage() {
   };
 
   // Typewriter effect for bot response
-  function typeWriterEffect(text) {
-    const formattedText = replaceLinks(marked.parse(text));
-    const plainText = text.replace(/https?:\/\/[^\s]+/g, "");
+  async function typeWriterEffect(text) {
+    // Fully process the markdown and embed links
+    const formattedText = await replaceLinks(marked.parse(text));
+  
+    // Create a temporary element to get the exact text content
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = formattedText;
+    const plainText = tempDiv.textContent || tempDiv.innerText || "";
+  
+    // Create the message container
     const messageDiv = document.createElement('div');
     messageDiv.className = 'chatbot__message chatbot__message--bot';
+    
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
     labelDiv.textContent = window.CHATBOT_NAME;
+    
     const textDiv = document.createElement('div');
     textDiv.className = 'chatbot__message';
-    textDiv.innerHTML = "";
+    textDiv.innerHTML = ""; // Start empty
+    
     messageDiv.appendChild(labelDiv);
     messageDiv.appendChild(textDiv);
     chatBody.appendChild(messageDiv);
+    scrollToBottom();
+  
+    // Type out the plain text at a constant speed
     let i = 0;
     function type() {
       if (i < plainText.length) {
         textDiv.textContent += plainText.charAt(i);
         i++;
         scrollToBottom();
-        setTimeout(type, 5);
+        setTimeout(type, 5); // constant delay between characters
       } else {
+        // When done, replace the content with the fully formatted HTML
         textDiv.innerHTML = formattedText;
-        const buttonsContainer = document.createElement('div');
-        buttonsContainer.className = 'chatbot__buttons';
-        const copyButton = document.createElement('button');
-        copyButton.className = 'btn-copy';
-        copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-        copyButton.addEventListener('click', () => {
-          navigator.clipboard.writeText(text);
-          copyButton.classList.add('btn-clicked');
-          setTimeout(() => {
-            copyButton.classList.remove('btn-clicked');
-          }, 1000); // Change back to original color after 1 second
-        });
-        buttonsContainer.appendChild(copyButton);
-
-        const likeButton = document.createElement('button');
-        likeButton.className = 'btn-like';
-        likeButton.innerHTML = '<i class="fas fa-thumbs-up"></i>';
-        likeButton.addEventListener('click', () => {
-          // TODO: Implement like functionality
-          likeButton.classList.add('btn-clicked');
-          setTimeout(() => {
-            likeButton.classList.remove('btn-clicked');
-          }, 1000); // Change back to original color after 1 second
-        });
-        buttonsContainer.appendChild(likeButton);
-
-        const dislikeButton = document.createElement('button');
-        dislikeButton.className = 'btn-dislike';
-        dislikeButton.innerHTML = '<i class="fas fa-thumbs-down"></i>';
-        dislikeButton.addEventListener('click', () => {
-          // TODO: Implement like functionality;
-          dislikeButton.classList.add('btn-clicked');
-          setTimeout(() => {
-            dislikeButton.classList.remove('btn-clicked');
-          }, 1000); // Change back to original color after 1 second
-        });
-        buttonsContainer.appendChild(dislikeButton);
-        messageDiv.appendChild(buttonsContainer);
+        // Additional UI (e.g., buttons) can be appended here if necessary.
       }
     }
     type();
   }
-
+  
   // Global click listener to fade out chat popup when clicking outside
   document.addEventListener('click', event => {
     const chatbotButton = document.querySelector('.chatbot__button');

@@ -25,7 +25,7 @@ class RetrievalChainWrapper:
 async def initialize_retrieval_chain(vector_store, cached_embeddings) -> RetrievalChainWrapper:
 
     # Create a retriever from that store
-    retriever = vector_store.as_retriever(search_kwargs={"k": 10})
+    retriever = vector_store.as_retriever(search_kwargs={"k": 4})
     logger.info("Retriever created")
     
     # Initialize LLM
