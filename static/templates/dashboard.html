@@ -28,11 +28,6 @@
 </head>
 
 <body>
-  <div class="chatbot-switch">
-    <button type="button" onclick="window.location.href='/wichita'">Wichita Chatbot</button>
-    <button type="button" onclick="window.location.href='/wsu'">WSU Chatbot</button>
-  </div>
-
   <!-- Hero Section -->
   <header class="hero" id="hero" style="background: url('{{ hero_img }}') center/cover no-repeat;">
     <img src="{{ hero_overlay_img }}" alt="{{ hero_alt }}" class="hero-overlay">
@@ -61,8 +56,22 @@
     {% else %}
       <h1>Dashboard Under Development</h1>
       <p>The dashboard feature for Wichita is currently under development. Please check back soon for updates.</p>
+      <div class="chart-container">
+        <canvas id="analyticsChart" width="800" height="400"></canvas>
+      </div>
     {% endif %}
   </section>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-buttons">
+        <button type="button" onclick="window.location.href='/wichita'">1</button>
+        <button type="button" onclick="window.location.href='/wsu'">2</button>
+      </div>
+      <p class="footer-text">&copy; {{ current_year }} Wichita State University. All rights reserved. Created by TIE at Innovation Campus WSU.</p>
+    </div>
+  </footer>
+  
 
   <!-- Chart.js and Script -->
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>

@@ -5,8 +5,8 @@ body {
     background-color: var(--primary-color);
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
-    /* Full viewport height */
+    min-height: 110vh;
+    flex-direction: column;
     margin: 0;
   }
   
@@ -18,11 +18,6 @@ body {
   
   h2 {
     color: var(--primary-color);
-  }
-  
-  main {
-    flex: 1;
-    /* Push footer to the bottom */
   }
   
   a {
@@ -37,10 +32,8 @@ body {
     align-items: center;
     height: 300px;
     background-color: var(--primary-color);
-    padding: 20px;
     text-align: center;
     position: relative;
-    width: 100%;
     background: var(--hero-img);
   }
   
@@ -50,60 +43,39 @@ body {
     left: 50%;
     transform: translate(-50%, -50%);
     max-height: 200px;
-    width: auto;
     background-color: var(--primary-color-dark);
     padding: 5px;
     border-radius: 20px;
   }
+
+  .dashboard-container {
+    flex: 1;
+  }
   
-  /* Footer */
   footer {
     background: #1a1a1a;
     color: #888;
-    text-align: center;
     padding: 20px;
-    /* Apply padding on all sides */
-    margin-top: 200px;
-    width: 100%;
-    /* Ensure it spans the full width */
   }
-
-  /* Navbar container */
-.chatbot-switch {
-  display: flex;
-  justify-content: flex-start; /* or space-between, center, etc., depending on your preference */
-  align-items: center;
-  background-color: var(--primary-color, #333);
-  padding: 0.5rem 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Navbar buttons */
-.chatbot-switch button {
-  background: none;
-  border: 1px solid var(--text-color, #fff); /* visible border */
-  color: var(--text-color, #fff);
-  font-size: 1rem;
-  padding: 0.5rem 1rem;
-  margin-right: 1rem;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.3s ease;
-}
-
-.chatbot-switch button:last-child {
-  margin-right: 0; /* remove margin on the last button */
-}
-
-/* Hover effect */
-.chatbot-switch button:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: #fff;
-}
-
-/* Active or focus states */
-.chatbot-switch button:focus,
-.chatbot-switch button:active {
-  outline: none;
-  background-color: rgba(255, 255, 255, 0.3);
-}
+  
+  .footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 100%;
+    margin: 0 auto;
+    flex-wrap: wrap;  /* Helps with responsiveness */
+  }
+  
+  .footer-buttons {
+    display: flex;
+    gap: 10px; /* space between buttons */
+  }
+  
+  .footer-text {
+    margin: 0;
+    text-align: center;
+    flex: 1;
+    /* You can also use padding or margin adjustments to fine-tune the layout */
+  }
+  
