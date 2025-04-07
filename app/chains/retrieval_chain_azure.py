@@ -49,7 +49,7 @@ async def initialize_retrieval_chain(vector_store, cached_embeddings) -> Retriev
             "You are given several partial answers from different pieces of context:\n\n"
             "{summaries}\n\n"
             "Follow these rules {SYSTEM_PROMPT}\n\n"
-            "Based on these partial answers, generate a final answer in up to {MAX_GENERATED_SENTENCES} sentences."
+            "Based on these partial answers, generate a final answer at a max of {MAX_GENERATED_SENTENCES} sentences."
         ))
     ])
     combine_prompt = combine_prompt.partial(SYSTEM_PROMPT=settings.SYSTEM_PROMPT)

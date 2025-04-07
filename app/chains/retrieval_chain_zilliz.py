@@ -45,8 +45,15 @@ async def initialize_retrieval_chain(vector_store, cached_embeddings) -> Retriev
     ])
     combine_prompt = ChatPromptTemplate.from_messages([
         ("system", settings.SYSTEM_PROMPT),
-        ("human", "You are given several partial answers generated from different pieces of context:\n\n{summaries}\n\nBased on these, please provide a final answer in up to 5 sentences, following the rules above.")
+        ("human", (
+            "You are given several partial answers from different pieces of context:\n\n"
+            "{summaries}\n\n"
+            "Follow these rules {SYSTEM_PROMPT}\n\n"
+            "Based on these partial answers, generate a final answer at a max of {MAX_GENERATED_SENTENCES} sentences."
+        ))
     ])
+    combine_prompt = combine_prompt.partial(SYSTEM_PROMPT=settings.SYSTEM_PROMPT)
+    combine_prompt = combine_prompt.partial(MAX_GENERATED_SENTENCES=settings.MAX_GENERATED_SENTENCES)
     logger.info("Prompt created")
     
     # Initialize the RetrievalQA chain
