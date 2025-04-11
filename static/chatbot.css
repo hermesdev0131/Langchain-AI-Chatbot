@@ -45,7 +45,7 @@ img {
   padding: 20px;
 }
 
-.faq-question {
+.Headings-theme .faq-subquestion {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -56,7 +56,7 @@ img {
   transition: all 0.2s ease;
 }
 
-.faq-question:hover {
+.Headings-theme .faq-subquestion:hover {
   background: var(--primary-color);
   transform: translateX(5px);
 }
@@ -74,7 +74,7 @@ img {
 
 /* Left-align specific elements */
 .faq-container,
-.faq-question,
+.Headings-theme .faq-subquestion,
 .chatbot__message--user {
   align-self: flex-start;
   margin-left: 15px;
@@ -799,4 +799,76 @@ img {
   /* Change text color */
   transition: background-color 0.3s ease, color 0.3s ease;
   /* Smooth transition */
+}
+
+/* FAQ Container */
+.SubHeadings-theme .faq-language-dropdown {
+  margin-bottom: 15px;
+}
+
+.SubHeadings-theme .faq-language-dropdown select {
+  cursor: pointer;
+  width: fit-content;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.SubHeadings-theme .faq-accordion-item {
+  margin-bottom: 12px;
+}
+
+.SubHeadings-theme .faq-accordion-item:hover {
+  transform: translateY(-2.5px);
+}
+
+.SubHeadings-theme .faq-accordion-header {
+  cursor: pointer;
+  padding: 15px;
+  display: flex;
+  background: linear-gradient(90deg, var(--primary-color-dark) 0%, var(--primary-color-dark) 100%);
+  border-radius: 8px;
+}
+
+.SubHeadings-theme .faq-accordion-header:hover {
+  background: linear-gradient(90deg, var(--primary-color-light) 0%, var(--primary-color-dark) 100%);
+  transform: 0.3s ease; 
+}
+
+.SubHeadings-theme .faq-icon {
+  margin-right: 12px;
+  color: var(--text-color);
+  transition: transform 0.3s ease;
+}
+
+.SubHeadings-theme .faq-accordion-header:hover .faq-icon {
+  transform: rotate(15deg);
+}
+
+.SubHeadings-theme .faq-accordion-content {
+  padding: 15px 20px;
+  background-color: var(--secondary-color);
+  border-radius: 0 0 8px 8px;
+}
+
+.SubHeadings-theme .faq-subquestion {
+  cursor: pointer;
+  padding: 12px 15px;
+  margin: 8px 0;
+  background: var(--primary-color-dark);
+  border-radius: 6px;
+  display: flex;
+  transition: background 0.5s ease, color 0.5s ease, transform 0.5s ease;
+}
+
+.SubHeadings-theme .faq-subquestion:hover {
+  background: var(--primary-color-light);
+  transform: translateY(-2px);
+}
+
+.SubHeadings-theme .rotate-icon i {
+  transition: transform 0.4s ease;
+}
+
+.SubHeadings-theme .loading-message {
+  color: var(--text-color);
 }

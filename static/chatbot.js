@@ -122,20 +122,33 @@
     }
   }
 
+// Dynamically load Font Awesome for icons if not already loaded
+(function loadFontAwesome() {
+  const existing = document.querySelector('link[href*="font-awesome"], link[href*="fontawesome"]');
+  if (!existing) {
+    const fa = document.createElement("link");
+    fa.rel = "stylesheet";
+    fa.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css";
+    fa.crossOrigin = "anonymous";
+    document.head.appendChild(fa);
+  }
+})();
+
 // Display FAQs from server
 async function displayFAQs() {
   try {
     const response = await fetch(`${apiBaseUrl}/faqs`);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const faqData = await response.json();
-    console.log(faqData);
-
-    const faqQuestions = Array.isArray(faqData) ? faqData : [];
 
     const faqContainer = document.createElement('div');
     faqContainer.className = 'faq-container';
     faqContainer.id = 'faq-container';
+    
+    // Automatically apply theme class based on FAQ structure
+    const isSubHeadingsStyle = Array.isArray(faqData) && typeof faqData[0] === 'object' && faqData[0].heading;
+    faqContainer.classList.add(isSubHeadingsStyle ? 'SubHeadings-theme' : 'Headings-theme');
 
+    // Language dropdown
     const languageDiv = document.createElement('div');
     languageDiv.className = 'faq-language-dropdown';
     languageDiv.innerHTML = `
@@ -145,7 +158,6 @@ async function displayFAQs() {
         <option value="vi">Tiếng Việt</option>
         <option value="fr">Français</option>
         <option value="de">Deutsch</option>
-        <option value="zh">中文</option>
         <option value="ja">日本語</option>
         <option value="ru">Русский</option>
         <option value="ar">العربية</option>
@@ -158,43 +170,78 @@ async function displayFAQs() {
 
     const faqQuestionsContainer = document.createElement('div');
     faqQuestionsContainer.id = 'faq-questions';
-    const fragment = document.createDocumentFragment();
 
-    faqQuestions.forEach(faqObj => {
-      // If faqObj is an object with a heading, use that; otherwise, use faqObj directly.
-      const question = (typeof faqObj === 'object' && faqObj.heading) ? faqObj.heading : faqObj;
-      
-      const faqDiv = document.createElement('div');
-      faqDiv.className = 'faq-question';
-      faqDiv.addEventListener('click', event => {
-        event.stopPropagation();
-        sendFAQ(question);
-      });
-      
-      const iconDiv = document.createElement('div');
-      iconDiv.className = 'faq-icon';
-      iconDiv.innerHTML = '<i class="fas fa-comment-dots"></i>';
-      faqDiv.appendChild(iconDiv);
-      
-      const textDiv = document.createElement('div');
-      textDiv.className = 'faq-text';
-      textDiv.textContent = question;
-      faqDiv.appendChild(textDiv);
-      
-      fragment.appendChild(faqDiv);
+    faqData.forEach((faq, index) => {
+      const isFlat = typeof faq === "string";
+
+      if (isFlat) {
+        const questionDiv = document.createElement('div');
+        questionDiv.className = 'faq-subquestion';
+        questionDiv.innerHTML = `
+          <div class="faq-icon"><i class="fas fa-comment-dots"></i></div>
+          <div class="faq-text">${faq}</div>
+        `;
+        questionDiv.addEventListener('click', () => sendFAQ(faq));
+        faqQuestionsContainer.appendChild(questionDiv);
+      } else {
+        const accordionItem = document.createElement('div');
+        accordionItem.className = 'faq-accordion-item';
+
+        const header = document.createElement('div');
+        header.className = 'faq-accordion-header';
+        header.innerHTML = `
+          <div class="faq-icon rotate-icon" id="arrow-${index}">
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-text">${faq.heading}</div>
+        `;
+
+        const content = document.createElement('div');
+        content.className = 'faq-accordion-content';
+        content.style.display = 'none';
+
+        faq.subheading.forEach(sub => {
+          const subDiv = document.createElement('div');
+          subDiv.className = 'faq-subquestion';
+          subDiv.innerHTML = `
+            <div class="faq-icon"><i class="fas fa-comment-dots"></i></div>
+            <div class="faq-text">${sub}</div>
+          `;
+          subDiv.addEventListener('click', event => {
+            event.stopPropagation();
+            sendFAQ(sub);
+          });
+          content.appendChild(subDiv);
+        });
+
+        header.addEventListener('click', () => {
+          const isVisible = content.style.display === 'block';
+          const allContents = document.querySelectorAll('.faq-accordion-content');
+          const allIcons = document.querySelectorAll('.rotate-icon i');
+
+          allContents.forEach(c => (c.style.display = 'none'));
+          allIcons.forEach(icon => icon.style.transform = 'rotate(0deg)');
+
+          if (!isVisible) {
+            content.style.display = 'block';
+            const iconEl = document.querySelector(`#arrow-${index} i`);
+            iconEl.style.transform = 'rotate(180deg)';
+          }
+        });
+
+        accordionItem.appendChild(header);
+        accordionItem.appendChild(content);
+        faqQuestionsContainer.appendChild(accordionItem);
+      }
     });
 
-    faqQuestionsContainer.appendChild(fragment);
     faqContainer.appendChild(faqQuestionsContainer);
     chatBody.appendChild(faqContainer);
     scrollToBottom();
 
     // Initialize language dropdown if using Select2
     if (window.$ && typeof $('#faq-language').select2 === 'function') {
-      $('#faq-language').select2({
-        minimumResultsForSearch: Infinity,
-        width: 'resolve'
-      });
+      $('#faq-language').select2({ minimumResultsForSearch: Infinity, width: 'resolve' });
     }
   } catch (error) {
     console.error("Error fetching FAQs:", error);
@@ -205,38 +252,94 @@ async function displayFAQs() {
 async function switchFaqLanguage() {
   const langDropdown = document.getElementById("faq-language");
   const selectedLang = langDropdown.value;
+
   try {
+    const faqContainer = document.getElementById("faq-container");
+    const faqQuestionsContainer = document.getElementById("faq-questions");
+
+    // Show loading
+    faqQuestionsContainer.innerHTML = '<div class="loading-message">Loading... Please wait</div>';
+
     const response = await fetch(`${apiBaseUrl}/faqs/translate?lang=${selectedLang}`);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const translatedFaqs = await response.json();
-    const faqQuestionsContainer = document.getElementById("faq-questions");
+
+    // Clear old content
     faqQuestionsContainer.innerHTML = '';
-    const fragment = document.createDocumentFragment();
-    translatedFaqs.forEach(faq => {
-      // Expecting faq to be the translated heading
-      const faqDiv = document.createElement('div');
-      faqDiv.className = 'faq-question';
-      faqDiv.addEventListener('click', event => {
-        event.stopPropagation();
-        sendFAQ(faq);
-      });
-      const iconDiv = document.createElement('div');
-      iconDiv.className = 'faq-icon';
-      iconDiv.innerHTML = '<i class="fas fa-comment-dots"></i>';
-      faqDiv.appendChild(iconDiv);
-      const textDiv = document.createElement('div');
-      textDiv.className = 'faq-text';
-      textDiv.textContent = faq;
-      faqDiv.appendChild(textDiv);
-      fragment.appendChild(faqDiv);
+
+    // Remove old theme and apply correct one
+    faqContainer.classList.remove('SubHeadings-theme', 'Headings-theme');
+    const isSubHeadingsStyle = Array.isArray(translatedFaqs) && typeof translatedFaqs[0] === 'object' && translatedFaqs[0].heading;
+    faqContainer.classList.add(isSubHeadingsStyle ? 'SubHeadings-theme' : 'Headings-theme');
+
+    // Render questions
+    translatedFaqs.forEach((faq, index) => {
+      const accordionItem = document.createElement('div');
+      accordionItem.className = 'faq-accordion-item';
+
+      if (typeof faq === 'string') {
+        // Flat Headings-style question
+        const questionDiv = document.createElement('div');
+        questionDiv.className = 'faq-subquestion';
+        questionDiv.innerHTML = `
+          <div class="faq-icon"><i class="fas fa-comment-dots"></i></div>
+          <div class="faq-text">${faq}</div>
+        `;
+        questionDiv.addEventListener('click', () => sendFAQ(faq));
+        faqQuestionsContainer.appendChild(questionDiv);
+      } else if (faq.heading) {
+        // SubHeadings-style question with subheadings
+        const header = document.createElement('div');
+        header.className = 'faq-accordion-header';
+        header.innerHTML = `
+          <div class="faq-icon rotate-icon" id="arrow-${index}">
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-text">${faq.heading}</div>
+        `;
+
+        const content = document.createElement('div');
+        content.className = 'faq-accordion-content';
+        content.style.display = 'none';
+
+        faq.subheading.forEach(sub => {
+          const subDiv = document.createElement('div');
+          subDiv.className = 'faq-subquestion';
+          subDiv.innerHTML = `
+            <div class="faq-icon"><i class="fas fa-comment-dots"></i></div>
+            <div class="faq-text">${sub}</div>
+          `;
+          subDiv.addEventListener('click', event => {
+            event.stopPropagation();
+            sendFAQ(sub);
+          });
+          content.appendChild(subDiv);
+        });
+
+        header.addEventListener('click', () => {
+          const isVisible = content.style.display === 'block';
+          const allContents = document.querySelectorAll('.faq-accordion-content');
+          const allIcons = document.querySelectorAll('.rotate-icon i');
+
+          allContents.forEach(c => (c.style.display = 'none'));
+          allIcons.forEach(icon => icon.style.transform = 'rotate(0deg)');
+
+          if (!isVisible) {
+            content.style.display = 'block';
+            const iconEl = document.querySelector(`#arrow-${index} i`);
+            iconEl.style.transform = 'rotate(180deg)';
+          }
+        });
+
+        accordionItem.appendChild(header);
+        accordionItem.appendChild(content);
+        faqQuestionsContainer.appendChild(accordionItem);
+      }
     });
-    faqQuestionsContainer.appendChild(fragment);
   } catch (error) {
     console.error("Error switching FAQ language:", error);
   }
 }
-
-
   // Send FAQ question as a chat message
   function sendFAQ(question) {
     chatInput.value = question;
