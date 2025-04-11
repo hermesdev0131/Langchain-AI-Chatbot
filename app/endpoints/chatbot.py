@@ -10,6 +10,6 @@ templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), ".
 
 @router.get("/chatbot", response_class=HTMLResponse)
 async def serve_index(request: Request):
-    context = {**request.state.template, "request": request}
+    context = {**request.state.template, "request": request, "api_base_url": "/wichita/api"}
 
     return templates.TemplateResponse("chatbot.html", context)
