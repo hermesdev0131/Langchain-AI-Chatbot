@@ -5,7 +5,10 @@ from .translation_chain_azure import initialize_translation_chain as initialize_
 from .vector_store_azure import initialize_vector_store_azure
 from .vector_store_zilliz import initialize_vector_store_zilliz
 from .ingest_chain import initialize_ingest_chain, IngestionChainWrapper
-from .delete_documents_azure import delete_document, delete_all_documents
+from .delete_documents_azure import delete_document as delete_document_azure
+from .delete_documents_azure import delete_all_documents as delete_all_documents_azure
+from .delete_documents_zilliz import delete_document as delete_document_zilliz
+from .delete_documents_zilliz import delete_all_documents as delete_all_documents_zilliz
 from .transcribe_openai_api import transcribe as transcribe_openai_api
 from .transcribe_azure import transcribe as transcribe_azure
 
@@ -20,6 +23,8 @@ __all__ = [
     "IngestionChainWrapper",
     "transcribe_openai_api",
     "transcribe_azure",
-    "delete_document",
-    "delete_all_documents",
+    "delete_document_azure",
+    "delete_all_documents_azure",
+    "delete_document_zilliz",
+    "delete_all_documents_zilliz"
 ]

@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     ZILLIZ_USER_QUERIES_COLLECTION_NAME: str = "user_queries"
     ZILLIZ_VECTOR_FIELD_NAME: str = "vector"
     ZILLIZ_VECTOR_TEXT_FIELD_NAME: str = "vector_content"
+    ZILLIZ_PRIMARY_KEY_FIELD_NAME: str = "pk"
 
     AZURE_OPENAI_ENDPOINT: str
     AZURE_OPENAI_API_KEY: str

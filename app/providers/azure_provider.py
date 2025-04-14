@@ -32,7 +32,6 @@ class AzureProvider(BaseProvider):
         self._cache_timestamp = None
         self._cache_ttl = 300  # seconds, e.g., re-fetch every 5 minutes
 
-
     @classmethod
     async def create(cls):
         """
@@ -119,3 +118,24 @@ class AzureProvider(BaseProvider):
     async def search_data(self, query: str, limit: int = 100, radius: float = 0.8) -> dict:
         # TODO: Implement data analytics search functionality for AzureProvider.
         raise NotImplementedError("search_data is not implemented for AzureProvider.")
+
+    async def delete_document(self, id: str) -> dict:
+        """
+        Delete a document using the Azure-specific delete functionality.
+        """
+        try:
+            # Note: Successful or not found deletion will return the same message, making it hard to tell if it was really deleted.
+            return await delete_document_azure(id)
+        except Exception as e:
+            logger.error(f"Error deleting document {id}: {e}")
+            return {"message": f"Error deleting document: {str(e)}", "status": "error"}
+
+    async def delete_all_documents(self) -> dict:
+        """
+        Delete all documents using the Azure-specific delete functionality.
+        """
+        try:
+            return await delete_all_documents_azure()
+        except Exception as e:
+            logger.error(f"Error deleting all documents: {e}")
+            return {"message": f"Error deleting all documents: {str(e)}", "status": "error"}

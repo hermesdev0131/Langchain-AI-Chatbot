@@ -11,6 +11,4 @@ __all__ = [
     "IngestionChainWrapper",
     "initialize_vector_store_azure",
     "initialize_vector_store_zilliz",
-    "delete_document",
-    "delete_all_documents",
 ]

@@ -91,8 +91,8 @@ class ZillizProvider(BaseProvider):
         #   Consider a toggleable option for this
 
         return translated_faqs
-
     
+
     async def transcribe_audio(self, file: UploadFile) -> str:
         return await transcribe_openai_api(self, file)
 
@@ -111,7 +111,6 @@ class ZillizProvider(BaseProvider):
                 model=settings.OPENAI_API_EMBEDDING_MODEL_NAME
             )
             query_vector = embedding_response.data[0].embedding
-            logger.debug("Embedding generated successfully: %s", query_vector[:10])  # partial logging for brevity
         except Exception as e:
             logger.exception("Embedding generation failed")
             raise RuntimeError(f"Embedding generation failed: {e}")
@@ -170,3 +169,31 @@ class ZillizProvider(BaseProvider):
             raise RuntimeError(f"Zilliz query failed: {e}")
 
         return {"frequency": total_frequency, "result": aggregated_results}
+
+    async def delete_document(self, id: str) -> dict:
+        """
+        Deletes a single document in Zilliz Cloud by calling the corresponding function.
+        """
+        # Note: Successful or not found deletion will return the same message, making it hard to tell if it was really deleted.
+
+        logger.debug("Attempting to delete document with id: %s", id)
+        try:
+            result = await delete_document_zilliz(id)
+            logger.info("Document %s deleted successfully: %s", id, result)
+            return result
+        except Exception as e:
+            logger.error("Error deleting document %s: %s", id, e)
+            raise RuntimeError("Document deletion failed") from e
+
+    async def delete_all_documents(self) -> dict:
+        """
+        Deletes all documents in the Zilliz Cloud collection by calling the corresponding function.
+        """
+        logger.debug("Attempting to delete all documents")
+        try:
+            result = await delete_all_documents_zilliz()
+            logger.info("All documents deleted successfully: %s", result)
+            return result
+        except Exception as e:
+            logger.error("Error deleting all documents: %s", e)
+            raise RuntimeError("Delete all documents failed") from e

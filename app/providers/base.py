@@ -20,11 +20,21 @@ class BaseProvider(ABC):
         pass
 
     @abstractmethod
-    async def transcribe_audio(self, file: "UploadFile") -> str:
+    async def transcribe_audio(self, file: UploadFile) -> str:
         """Transcribe the given audio file and return the transcript."""
         pass
 
     @abstractmethod
     async def search_data(self, query: str, limit: int, radius: float) -> dict:
-        """Search for similar data and return"""
+        """Search for similar data and return."""
+        pass
+
+    @abstractmethod
+    async def delete_document(self, id: str) -> dict:
+        """Delete a single document with the given ID."""
+        pass
+
+    @abstractmethod
+    async def delete_all_documents(self) -> dict:
+        """Delete all documents."""
         pass
