@@ -7,6 +7,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from contextlib import asynccontextmanager
 from app import *
+from app.config import settings
+from app.dependencies import set_azure_provider, set_zilliz_provider
 
 logger = logging.getLogger(__name__)
 
@@ -60,20 +62,9 @@ async def default_route():
     return RedirectResponse(url="/wichita")
 
 # -------------------------------------------------
-# Provider-specific dependency functions
-# -------------------------------------------------
-def set_azure_provider(request: Request):
-    request.state.provider = request.app.state.azure_provider
-    request.state.template = settings.WICHITA_TEMPLATE
-
-def set_zilliz_provider(request: Request):
-    request.state.provider = request.app.state.zilliz_provider
-    request.state.template = settings.WSU_TEMPLATE
-
-# -------------------------------------------------
 # Provider-specific API routers
 # -------------------------------------------------
-# Wichita API: endpoints will be available at /api/...
+# Wichita API: endpoints will be available at /wichita/api/...
 wichita_api_router = APIRouter(prefix="/wichita", dependencies=[Depends(set_azure_provider)])
 wichita_api_router.include_router(chatbot_router, prefix="/api")
 wichita_api_router.include_router(ingest_router, prefix="/api")
