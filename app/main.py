@@ -45,8 +45,8 @@ app.add_middleware(
 async def frame_control(request: Request, call_next):
     response: Response = await call_next(request)
     # Only allow framing if the request is for the /api/chatbot endpoint
-    if request.url.path.startswith("/api/chatbot"):
-        response.headers["Content-Security-Policy"] = "frame-ancestors http://localhost:3000"
+    if request.url.path.startswith("/wsu/api/chatbot"):
+        response.headers["Content-Security-Policy"] = "frame-ancestors http://localhost:3000 https://www.wichita.edu;"
     else:
         response.headers["Content-Security-Policy"] = "frame-ancestors 'none'"
     return response
