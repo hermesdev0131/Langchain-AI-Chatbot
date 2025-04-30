@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 from typing import ClassVar
 
 class Settings(BaseSettings):
-    OPENAI_API_CHAT_MODEL_NAME: str = "gpt-4o-mini"
+    OPENAI_API_CHAT_MODEL_NAME: str = "gpt-4.1-nano"
     OPENAI_API_EMBEDDING_MODEL_NAME: str = "text-embedding-3-large"
     OPENAI_API_KEY: str
     ZILLIZ_AUTH_TOKEN: str
@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     AZURE_MONGO_DATABASE_NAME: str = "chatbot-cosmos-mongo-db"
     AZURE_MODEL_NAME: str = "gpt-4o-mini"
     AZURE_DEPLOYMENT_NAME: str = "gpt-4o-mini"
-    AZURE_API_VERSION: str = "2024-07-01-preview"
+    AZURE_API_VERSION: str = "2025-03-01-preview"
     AZURE_INDEX_NAME: str = "chatbot-index"
 
     REQUEST_TIMEOUT: int = 50_000

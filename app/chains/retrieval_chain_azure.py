@@ -20,8 +20,10 @@ class RetrievalChainWrapper:
 async def initialize_retrieval_chain(vector_store, cached_embeddings) -> RetrievalChainWrapper:
     logger.info("Starting chain initialization...")
 
-    retriever = vector_store.as_retriever()
-    retriever.k = 4 # Set the number of documents to retrieve
+    retriever = vector_store.as_retriever(
+        search_type="hybrid",
+        k=4,
+    )
 
     logger.info("Retriever created")
     
@@ -43,29 +45,17 @@ async def initialize_retrieval_chain(vector_store, cached_embeddings) -> Retriev
         ("system", settings.SYSTEM_PROMPT),
         ("human", "Question: {question}\nContext: {context}")
     ])
-    combine_prompt = ChatPromptTemplate.from_messages([
-        ("system", settings.SYSTEM_PROMPT),
-        ("human", (
-            "You are given several partial answers from different pieces of context:\n\n"
-            "{summaries}\n\n"
-            "Follow these rules {SYSTEM_PROMPT}\n\n"
-            "Based on these partial answers, generate a final answer at a max of {MAX_GENERATED_SENTENCES} sentences."
-        ))
-    ])
-    combine_prompt = combine_prompt.partial(SYSTEM_PROMPT=settings.SYSTEM_PROMPT)
-    combine_prompt = combine_prompt.partial(MAX_GENERATED_SENTENCES=settings.MAX_GENERATED_SENTENCES)
     logger.info("Prompt created")
     
     # Initialize the RetrievalQA chain using the LLM and retriever
     chain = await asyncio.to_thread(
         RetrievalQA.from_chain_type,
         llm=llm,
-        chain_type="map_reduce",
+        chain_type="stuff",
         retriever=retriever,
-        return_source_documents=True,
+        return_source_documents=False,
         chain_type_kwargs={
-            "question_prompt": question_prompt,
-            "combine_prompt": combine_prompt,
+            "prompt": question_prompt,
         }
     )
     logger.info("RetrievalQA chain initialized")
@@ -79,14 +69,14 @@ async def answer_query(query: str, wrapper: RetrievalChainWrapper) -> str:
     answer = await wrapper.chain.ainvoke(query)
 
     result = answer.get("result")
-    logger.info(f"Answer generated: {result}")
+    logger.debug(f"Answer generated: {result}")
     source_docs = answer.get("source_documents", [])
     # Iterate through the source documents and log their metadata and content
     for doc in source_docs:
         # Assume your Document metadata includes "id" and/or "name"
         doc_id = doc.metadata.get("id", "N/A")
         doc_name = doc.metadata.get("name", "N/A")
-        logger.info("Document ID: %s, Document Name: %s", doc_id, doc_name)
-        logger.info("Document Content: %s", doc.page_content)
+        logger.debug("Document ID: %s, Document Name: %s", doc_id, doc_name)
+        logger.debug("Document Content: %s", doc.page_content)
 
     return answer

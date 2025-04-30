@@ -1,7 +1,7 @@
 from langchain.embeddings import CacheBackedEmbeddings
 from langchain_openai import OpenAIEmbeddings
 from langchain.storage import InMemoryByteStore
-from langchain.vectorstores import Zilliz
+from langchain_community.vectorstores import Zilliz
 import asyncio
 from app.config import settings
 import logging
@@ -32,11 +32,11 @@ async def initialize_vector_store_zilliz():
         index_params={
             "metric_type": "COSINE",
             "index_type": "HNSW",
-            "params": {"M": 8, "efConstruction": 64}
+            "params": {"M": 16, "efConstruction": 128}
         },
         search_params={
             "metric_type": "COSINE",
-            "params": {"ef": 10}
+            "params": {"ef": 128}
         },
         vector_field=settings.ZILLIZ_VECTOR_FIELD_NAME,
         text_field=settings.ZILLIZ_VECTOR_TEXT_FIELD_NAME,

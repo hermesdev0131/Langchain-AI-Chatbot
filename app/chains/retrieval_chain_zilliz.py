@@ -4,7 +4,7 @@ import datetime
 from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
 from langchain.prompts import ChatPromptTemplate
-from langchain_milvus import Zilliz
+from langchain_community.vectorstores import Zilliz
 from langchain.docstore.document import Document
 from app.config import settings
 
@@ -25,7 +25,10 @@ class RetrievalChainWrapper:
 async def initialize_retrieval_chain(vector_store, cached_embeddings) -> RetrievalChainWrapper:
 
     # Create a retriever from that store
-    retriever = vector_store.as_retriever(search_kwargs={"k": 4})
+    retriever = vector_store.as_retriever(
+        search_type="mmr",
+        search_kwargs={"k": 4, "fetch_k": 40, "lambda_mult": 0.5}
+    )
     logger.info("Retriever created")
     
     # Initialize LLM
@@ -43,29 +46,17 @@ async def initialize_retrieval_chain(vector_store, cached_embeddings) -> Retriev
         ("system", settings.SYSTEM_PROMPT),
         ("human", "Question: {question}\nContext: {context}")
     ])
-    combine_prompt = ChatPromptTemplate.from_messages([
-        ("system", settings.SYSTEM_PROMPT),
-        ("human", (
-            "You are given several partial answers from different pieces of context:\n\n"
-            "{summaries}\n\n"
-            "Follow these rules {SYSTEM_PROMPT}\n\n"
-            "Based on these partial answers, generate a final answer at a max of {MAX_GENERATED_SENTENCES} sentences."
-        ))
-    ])
-    combine_prompt = combine_prompt.partial(SYSTEM_PROMPT=settings.SYSTEM_PROMPT)
-    combine_prompt = combine_prompt.partial(MAX_GENERATED_SENTENCES=settings.MAX_GENERATED_SENTENCES)
     logger.info("Prompt created")
     
     # Initialize the RetrievalQA chain
     chain = await asyncio.to_thread(
         RetrievalQA.from_chain_type,
         llm=llm,
-        chain_type="map_reduce",
+        chain_type="stuff",
         retriever=retriever,
-        return_source_documents=True,
+        return_source_documents=False,
         chain_type_kwargs={
-            "question_prompt": question_prompt,
-            "combine_prompt": combine_prompt,
+            "prompt": question_prompt,
         }
     )
     logger.info("RetrievalQA chain initialized")
@@ -119,6 +110,6 @@ async def answer_and_store(query: str, wrapper: RetrievalChainWrapper) -> str:
             "timestamp": int(datetime.datetime.now().timestamp()),
         }
     )
-    await asyncio.to_thread(wrapper.user_queries_vectorstore.add_documents, [doc])
+    asyncio.create_task(asyncio.to_thread(wrapper.user_queries_vectorstore.add_documents, [doc]))
     
     return result
