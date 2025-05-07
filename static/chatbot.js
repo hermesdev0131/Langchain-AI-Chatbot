@@ -122,224 +122,228 @@
     }
   }
 
-// Dynamically load Font Awesome for icons if not already loaded
-(function loadFontAwesome() {
-  const existing = document.querySelector('link[href*="font-awesome"], link[href*="fontawesome"]');
-  if (!existing) {
-    const fa = document.createElement("link");
-    fa.rel = "stylesheet";
-    fa.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css";
-    fa.crossOrigin = "anonymous";
-    document.head.appendChild(fa);
+  // Dynamically load Font Awesome for icons if not already loaded
+  (function loadFontAwesome() {
+    const existing = document.querySelector('link[href*="font-awesome"], link[href*="fontawesome"]');
+    if (!existing) {
+      const fa = document.createElement("link");
+      fa.rel = "stylesheet";
+      fa.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css";
+      fa.crossOrigin = "anonymous";
+      document.head.appendChild(fa);
+    }
+  })();
+
+  // Display FAQs from server
+  async function displayFAQs() {
+    try {
+      const response = await fetch(`${apiBaseUrl}/faqs`);
+      const faqData = await response.json();
+
+      const faqContainer = document.createElement('div');
+      faqContainer.className = 'faq-container';
+      faqContainer.id = 'faq-container';
+      
+      // Automatically apply theme class based on FAQ structure
+      const isSubHeadingsStyle = Array.isArray(faqData) && typeof faqData[0] === 'object' && faqData[0].heading;
+      faqContainer.classList.add(isSubHeadingsStyle ? 'SubHeadings-theme' : 'Headings-theme');
+
+      // Language dropdown
+      const languageDiv = document.createElement('div');
+      languageDiv.className = 'faq-language-dropdown';
+      languageDiv.innerHTML = `
+        <select id="faq-language" onchange="switchFaqLanguage()">
+          <option value="en" selected>English</option>
+          <option value="es">Español</option>
+          <option value="vi">Tiếng Việt</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+          <option value="ja">日本語</option>
+          <option value="ru">Русский</option>
+          <option value="ar">العربية</option>
+          <option value="ko">한국어</option>
+          <option value="hi">हिन्दी</option>
+          <option value="bn">বাংলা</option>
+        </select>
+      `;
+      faqContainer.appendChild(languageDiv);
+
+      const faqQuestionsContainer = document.createElement('div');
+      faqQuestionsContainer.id = 'faq-questions';
+      const fragment = document.createDocumentFragment(); // Create a DocumentFragment
+
+      faqData.forEach((faq, index) => {
+        const isFlat = typeof faq === "string";
+
+        if (isFlat) {
+          const questionDiv = document.createElement('div');
+          questionDiv.className = 'faq-subquestion';
+          questionDiv.innerHTML = `
+            <div class="faq-icon"><i class="fas fa-comment-dots"></i></div>
+            <div class="faq-text">${faq}</div>
+          `;
+          questionDiv.addEventListener('click', () => sendFAQ(faq));
+          fragment.appendChild(questionDiv); // Append to fragment
+        } else {
+          const accordionItem = document.createElement('div');
+          accordionItem.className = 'faq-accordion-item';
+
+          const header = document.createElement('div');
+          header.className = 'faq-accordion-header';
+          header.innerHTML = `
+            <div class="faq-icon rotate-icon" id="arrow-${index}">
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="faq-text">${faq.heading}</div>
+          `;
+
+          const content = document.createElement('div');
+          content.className = 'faq-accordion-content';
+          content.style.display = 'none';
+
+          faq.subheading.forEach(sub => {
+            const subDiv = document.createElement('div');
+            subDiv.className = 'faq-subquestion';
+            subDiv.innerHTML = `
+              <div class="faq-icon"><i class="fas fa-comment-dots"></i></div>
+              <div class="faq-text">${sub}</div>
+            `;
+            subDiv.addEventListener('click', event => {
+              event.stopPropagation();
+              sendFAQ(sub);
+            });
+            content.appendChild(subDiv);
+          });
+
+          header.addEventListener('click', () => {
+            const isVisible = content.style.display === 'block';
+            const allContents = document.querySelectorAll('.faq-accordion-content');
+            const allIcons = document.querySelectorAll('.rotate-icon i');
+
+            allContents.forEach(c => (c.style.display = 'none'));
+            allIcons.forEach(icon => icon.style.transform = 'rotate(0deg)');
+
+            if (!isVisible) {
+              content.style.display = 'block';
+              const iconEl = document.querySelector(`#arrow-${index} i`);
+              iconEl.style.transform = 'rotate(180deg)';
+            }
+          });
+
+          accordionItem.appendChild(header);
+          accordionItem.appendChild(content);
+          fragment.appendChild(accordionItem); // Append to fragment
+        }
+      });
+      faqQuestionsContainer.appendChild(fragment); // Append fragment to container
+
+      faqContainer.appendChild(faqQuestionsContainer);
+      chatBody.appendChild(faqContainer);
+      scrollToBottom();
+
+      // Initialize language dropdown if using Select2
+      if (window.$ && typeof $('#faq-language').select2 === 'function') {
+        $('#faq-language').select2({ minimumResultsForSearch: Infinity, width: 'resolve' });
+      }
+    } catch (error) {
+      console.error("Error fetching FAQs:", error);
+    }
   }
-})();
 
-// Display FAQs from server
-async function displayFAQs() {
-  try {
-    const response = await fetch(`${apiBaseUrl}/faqs`);
-    const faqData = await response.json();
+  // Switch FAQ language by fetching translated questions
+  async function switchFaqLanguage() {
+    const langDropdown = document.getElementById("faq-language");
+    const selectedLang = langDropdown.value;
 
-    const faqContainer = document.createElement('div');
-    faqContainer.className = 'faq-container';
-    faqContainer.id = 'faq-container';
-    
-    // Automatically apply theme class based on FAQ structure
-    const isSubHeadingsStyle = Array.isArray(faqData) && typeof faqData[0] === 'object' && faqData[0].heading;
-    faqContainer.classList.add(isSubHeadingsStyle ? 'SubHeadings-theme' : 'Headings-theme');
+    try {
+      const faqContainer = document.getElementById("faq-container");
+      const faqQuestionsContainer = document.getElementById("faq-questions");
 
-    // Language dropdown
-    const languageDiv = document.createElement('div');
-    languageDiv.className = 'faq-language-dropdown';
-    languageDiv.innerHTML = `
-      <select id="faq-language" onchange="switchFaqLanguage()">
-        <option value="en" selected>English</option>
-        <option value="es">Español</option>
-        <option value="vi">Tiếng Việt</option>
-        <option value="fr">Français</option>
-        <option value="de">Deutsch</option>
-        <option value="ja">日本語</option>
-        <option value="ru">Русский</option>
-        <option value="ar">العربية</option>
-        <option value="ko">한국어</option>
-        <option value="hi">हिन्दी</option>
-        <option value="bn">বাংলা</option>
-      </select>
-    `;
-    faqContainer.appendChild(languageDiv);
+      // Show loading
+      faqQuestionsContainer.innerHTML = '<div class="loading-message">Loading... Please wait</div>';
 
-    const faqQuestionsContainer = document.createElement('div');
-    faqQuestionsContainer.id = 'faq-questions';
+      const response = await fetch(`${apiBaseUrl}/faqs/translate?lang=${selectedLang}`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const translatedFaqs = await response.json();
 
-    faqData.forEach((faq, index) => {
-      const isFlat = typeof faq === "string";
+      // Clear old content
+      faqQuestionsContainer.innerHTML = '';
+      const fragment = document.createDocumentFragment(); // Create a DocumentFragment
 
-      if (isFlat) {
-        const questionDiv = document.createElement('div');
-        questionDiv.className = 'faq-subquestion';
-        questionDiv.innerHTML = `
-          <div class="faq-icon"><i class="fas fa-comment-dots"></i></div>
-          <div class="faq-text">${faq}</div>
-        `;
-        questionDiv.addEventListener('click', () => sendFAQ(faq));
-        faqQuestionsContainer.appendChild(questionDiv);
-      } else {
+      // Remove old theme and apply correct one
+      faqContainer.classList.remove('SubHeadings-theme', 'Headings-theme');
+      const isSubHeadingsStyle = Array.isArray(translatedFaqs) && typeof translatedFaqs[0] === 'object' && translatedFaqs[0].heading;
+      faqContainer.classList.add(isSubHeadingsStyle ? 'SubHeadings-theme' : 'Headings-theme');
+
+      // Render questions
+      translatedFaqs.forEach((faq, index) => {
         const accordionItem = document.createElement('div');
         accordionItem.className = 'faq-accordion-item';
 
-        const header = document.createElement('div');
-        header.className = 'faq-accordion-header';
-        header.innerHTML = `
-          <div class="faq-icon rotate-icon" id="arrow-${index}">
-            <i class="fas fa-chevron-down"></i>
-          </div>
-          <div class="faq-text">${faq.heading}</div>
-        `;
-
-        const content = document.createElement('div');
-        content.className = 'faq-accordion-content';
-        content.style.display = 'none';
-
-        faq.subheading.forEach(sub => {
-          const subDiv = document.createElement('div');
-          subDiv.className = 'faq-subquestion';
-          subDiv.innerHTML = `
+        if (typeof faq === 'string') {
+          // Flat Headings-style question
+          const questionDiv = document.createElement('div');
+          questionDiv.className = 'faq-subquestion';
+          questionDiv.innerHTML = `
             <div class="faq-icon"><i class="fas fa-comment-dots"></i></div>
-            <div class="faq-text">${sub}</div>
+            <div class="faq-text">${faq}</div>
           `;
-          subDiv.addEventListener('click', event => {
-            event.stopPropagation();
-            sendFAQ(sub);
+          questionDiv.addEventListener('click', () => sendFAQ(faq));
+          fragment.appendChild(questionDiv); // Append to fragment
+        } else if (faq.heading) {
+          // SubHeadings-style question with subheadings
+          const header = document.createElement('div');
+          header.className = 'faq-accordion-header';
+          header.innerHTML = `
+            <div class="faq-icon rotate-icon" id="arrow-${index}">
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="faq-text">${faq.heading}</div>
+          `;
+
+          const content = document.createElement('div');
+          content.className = 'faq-accordion-content';
+          content.style.display = 'none';
+
+          faq.subheading.forEach(sub => {
+            const subDiv = document.createElement('div');
+            subDiv.className = 'faq-subquestion';
+            subDiv.innerHTML = `
+              <div class="faq-icon"><i class="fas fa-comment-dots"></i></div>
+              <div class="faq-text">${sub}</div>
+            `;
+            subDiv.addEventListener('click', event => {
+              event.stopPropagation();
+              sendFAQ(sub);
+            });
+            content.appendChild(subDiv);
           });
-          content.appendChild(subDiv);
-        });
 
-        header.addEventListener('click', () => {
-          const isVisible = content.style.display === 'block';
-          const allContents = document.querySelectorAll('.faq-accordion-content');
-          const allIcons = document.querySelectorAll('.rotate-icon i');
+          header.addEventListener('click', () => {
+            const isVisible = content.style.display === 'block';
+            const allContents = document.querySelectorAll('.faq-accordion-content');
+            const allIcons = document.querySelectorAll('.rotate-icon i');
 
-          allContents.forEach(c => (c.style.display = 'none'));
-          allIcons.forEach(icon => icon.style.transform = 'rotate(0deg)');
+            allContents.forEach(c => (c.style.display = 'none'));
+            allIcons.forEach(icon => icon.style.transform = 'rotate(0deg)');
 
-          if (!isVisible) {
-            content.style.display = 'block';
-            const iconEl = document.querySelector(`#arrow-${index} i`);
-            iconEl.style.transform = 'rotate(180deg)';
-          }
-        });
+            if (!isVisible) {
+              content.style.display = 'block';
+              const iconEl = document.querySelector(`#arrow-${index} i`);
+              iconEl.style.transform = 'rotate(180deg)';
+            }
+          });
 
-        accordionItem.appendChild(header);
-        accordionItem.appendChild(content);
-        faqQuestionsContainer.appendChild(accordionItem);
-      }
-    });
-
-    faqContainer.appendChild(faqQuestionsContainer);
-    chatBody.appendChild(faqContainer);
-    scrollToBottom();
-
-    // Initialize language dropdown if using Select2
-    if (window.$ && typeof $('#faq-language').select2 === 'function') {
-      $('#faq-language').select2({ minimumResultsForSearch: Infinity, width: 'resolve' });
+          accordionItem.appendChild(header);
+          accordionItem.appendChild(content);
+          fragment.appendChild(accordionItem); // Append to fragment
+        }
+      });
+      faqQuestionsContainer.appendChild(fragment); // Append fragment to container
+    } catch (error) {
+      console.error("Error switching FAQ language:", error);
     }
-  } catch (error) {
-    console.error("Error fetching FAQs:", error);
   }
-}
-
-// Switch FAQ language by fetching translated questions
-async function switchFaqLanguage() {
-  const langDropdown = document.getElementById("faq-language");
-  const selectedLang = langDropdown.value;
-
-  try {
-    const faqContainer = document.getElementById("faq-container");
-    const faqQuestionsContainer = document.getElementById("faq-questions");
-
-    // Show loading
-    faqQuestionsContainer.innerHTML = '<div class="loading-message">Loading... Please wait</div>';
-
-    const response = await fetch(`${apiBaseUrl}/faqs/translate?lang=${selectedLang}`);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const translatedFaqs = await response.json();
-
-    // Clear old content
-    faqQuestionsContainer.innerHTML = '';
-
-    // Remove old theme and apply correct one
-    faqContainer.classList.remove('SubHeadings-theme', 'Headings-theme');
-    const isSubHeadingsStyle = Array.isArray(translatedFaqs) && typeof translatedFaqs[0] === 'object' && translatedFaqs[0].heading;
-    faqContainer.classList.add(isSubHeadingsStyle ? 'SubHeadings-theme' : 'Headings-theme');
-
-    // Render questions
-    translatedFaqs.forEach((faq, index) => {
-      const accordionItem = document.createElement('div');
-      accordionItem.className = 'faq-accordion-item';
-
-      if (typeof faq === 'string') {
-        // Flat Headings-style question
-        const questionDiv = document.createElement('div');
-        questionDiv.className = 'faq-subquestion';
-        questionDiv.innerHTML = `
-          <div class="faq-icon"><i class="fas fa-comment-dots"></i></div>
-          <div class="faq-text">${faq}</div>
-        `;
-        questionDiv.addEventListener('click', () => sendFAQ(faq));
-        faqQuestionsContainer.appendChild(questionDiv);
-      } else if (faq.heading) {
-        // SubHeadings-style question with subheadings
-        const header = document.createElement('div');
-        header.className = 'faq-accordion-header';
-        header.innerHTML = `
-          <div class="faq-icon rotate-icon" id="arrow-${index}">
-            <i class="fas fa-chevron-down"></i>
-          </div>
-          <div class="faq-text">${faq.heading}</div>
-        `;
-
-        const content = document.createElement('div');
-        content.className = 'faq-accordion-content';
-        content.style.display = 'none';
-
-        faq.subheading.forEach(sub => {
-          const subDiv = document.createElement('div');
-          subDiv.className = 'faq-subquestion';
-          subDiv.innerHTML = `
-            <div class="faq-icon"><i class="fas fa-comment-dots"></i></div>
-            <div class="faq-text">${sub}</div>
-          `;
-          subDiv.addEventListener('click', event => {
-            event.stopPropagation();
-            sendFAQ(sub);
-          });
-          content.appendChild(subDiv);
-        });
-
-        header.addEventListener('click', () => {
-          const isVisible = content.style.display === 'block';
-          const allContents = document.querySelectorAll('.faq-accordion-content');
-          const allIcons = document.querySelectorAll('.rotate-icon i');
-
-          allContents.forEach(c => (c.style.display = 'none'));
-          allIcons.forEach(icon => icon.style.transform = 'rotate(0deg)');
-
-          if (!isVisible) {
-            content.style.display = 'block';
-            const iconEl = document.querySelector(`#arrow-${index} i`);
-            iconEl.style.transform = 'rotate(180deg)';
-          }
-        });
-
-        accordionItem.appendChild(header);
-        accordionItem.appendChild(content);
-        faqQuestionsContainer.appendChild(accordionItem);
-      }
-    });
-  } catch (error) {
-    console.error("Error switching FAQ language:", error);
-  }
-}
   // Send FAQ question as a chat message
   function sendFAQ(question) {
     chatInput.value = question;
@@ -430,116 +434,186 @@ async function switchFaqLanguage() {
     messageDiv.className = `chatbot__message chatbot__message--${sender}`;
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
-    labelDiv.textContent = 'You';
+    labelDiv.textContent = sender === 'user' ? 'You' : window.CHATBOT_NAME || 'Bot'; // Use CHATBOT_NAME for bot
     const textDiv = document.createElement('div');
-    textDiv.innerHTML = sender === "bot" ? replaceLinks(content) : content;
+    // For bot messages, parse markdown then replace links. For user messages, display as is (or sanitize).
+    textDiv.innerHTML = sender === "bot" ? replaceLinks(marked.parse(content)) : content;
     messageDiv.appendChild(labelDiv);
     messageDiv.appendChild(textDiv);
     chatBody.appendChild(messageDiv);
     scrollToBottom();
   }
 
-// Helper: transform a YouTube URL into its embed form.
-function getYoutubeEmbedUrl(url) {
-  const regex = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-  const match = url.match(regex);
-  return match ? `https://www.youtube.com/embed/${match[1]}` : url;
-}
-
-// Helper: returns an iframe embed for known providers; otherwise, returns a plain clickable link.
-function embedUrl(url) {
-  // Automatically embed YouTube links.
-  if (url.includes("youtube.com") || url.includes("youtu.be")) {
-    return `<iframe width="560" height="315" src="${getYoutubeEmbedUrl(url)}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="max-width: 100%; border-radius: 8px; margin-top: 5px;"></iframe>`;
+  // Helper: transform a YouTube URL into its embed form.
+  function getYoutubeEmbedUrl(url) {
+    const regex = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+    const match = url.match(regex);
+    return match ? `https://www.youtube.com/embed/${match[1]}` : url;
   }
 
-  return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline;">${url}</a>`;
-}
+  // Helper: returns an iframe embed for known providers; otherwise, returns a plain clickable link.
+  function embedUrl(url) {
+    // Automatically embed YouTube links.
+    if (url.includes("youtube.com") || url.includes("youtu.be")) {
+      return `<iframe width="560" height="315" src="${getYoutubeEmbedUrl(url)}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="max-width: 100%; border-radius: 8px; margin-top: 5px;"></iframe>`;
+    }
 
-// Helper: returns a plain clickable link (without embedding) regardless of provider.
-function plainLink(url) {
-  return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline;">${url}</a>`;
-}
+    // Embed direct video links using HTML5 <video> tag
+    const videoExtensions = /\.(mp4|webm|ogv)$/i;
+    if (videoExtensions.test(url)) {
+      const typeMatch = url.match(videoExtensions);
+      // Ensure typeMatch is not null and has the captured group for the extension
+      const extension = typeMatch && typeMatch[1] ? typeMatch[1].toLowerCase() : 'mp4'; // Default to mp4 if somehow extension capture fails
+      const videoType = `video/${extension === 'ogv' ? 'ogg' : extension}`;
+      return `<video controls width="560" height="315" style="max-width: 100%; border-radius: 8px; margin-top: 5px;"><source src="${url}" type="${videoType}">Your browser does not support the video tag.</video>`;
+    }
 
-// Main function: process both markdown-style links and raw URLs.
-function replaceLinks(text) {
-  if (!text || typeof text !== 'string' || text.trim() === "") {
-    console.error("replaceLinks received empty or invalid text.");
-    return "Please try again";
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline;">${url}</a>`;
   }
-  try {
-    // Remove any extraneous parentheses around URLs.
-    text = text.replace(/\(\s*((https?:\/\/|www\.)[^\s]+)/g, '$1');
 
-    // Process markdown links: e.g. [label](url)
-    text = text.replace(/\[([^\]]+)\]\(([\s\S]+?)\)/g, (match, linkText, linkContent) => {
-      let url = linkContent.trim().replace(/^\(|\)$/g, '').replace(/[\)\.,!?]+$/g, '');
-      // If the link text starts with "embed" (case-insensitive), output iframe and then a plain link on a new line.
-      if (linkText.trim().toLowerCase().startsWith("embed")) {
-        return `<iframe width="660" height="415" src="${url}" frameborder="0" allowfullscreen style="max-width: 100%; margin-top: 5px;"></iframe><br>${plainLink(url)}`;
-      }
-      // Otherwise, delegate to the default embedUrl helper.
-      console.log("embed (markdown):", url);
-      return embedUrl(url);
-    });
+  // Helper: returns a plain clickable link (without embedding) regardless of provider.
+  function plainLink(url) {
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline;">${url}</a>`;
+  }
 
-    // Extra pass: Process cases where [embed] precedes an <a> tag.
-    text = text.replace(
-      /\[embed\]\s*(<a\s+href="([^"]+)"[^>]*>[\s\S]*?<\/a>)/gi,
-      (_, fullAnchor, url) => {
-        url = url.trim();
-        console.log("embed anchor:", url);
-        return `<iframe width="660" height="415" src="${url}" frameborder="0" allowfullscreen style="max-width: 100%; margin-top: 5px;"></iframe><br>${plainLink(url)}`;
-      }
-    );
+  // Main function: process both markdown-style links and raw URLs.
+  function replaceLinks(text) {
+    if (!text || typeof text !== 'string' || text.trim() === "") {
+      console.error("replaceLinks received empty or invalid text.");
+      return "Please try again";
+    }
+    try {
+      // Phase 1: Handle [embed] keyword transformations on the HTML string
+      // Remove any extraneous parentheses around URLs that might have been missed.
+      text = text.replace(/\(\s*((https?:\/\/|www\.)[^\s]+)/g, '$1');
 
-    // First pass: Process raw URLs with an explicit [embed] marker.
-    text = text.replace(
-      /\[embed\][\s:]*((https?:\/\/|www\.)[^\s]+)/gi,
-      (_, urlMatch) => {
-        let url = urlMatch.trim().replace(/^\(+/, '').replace(/[\)\.,!?]+$/g, '');
-        url = url.startsWith('http') ? url : 'http://' + url;
-        console.log("embed (raw):", url);
-        return `<iframe width="660" height="415" src="${url}" frameborder="0" allowfullscreen style="max-width: 100%; margin-top: 5px;"></iframe><br>${plainLink(url)}`;
-      }
-    );
+      // Process [embed] <a href="url">text</a> -> iframe + plainLink
+      text = text.replace(
+        /\[embed\]\s*(<a\s+href="([^"]+)"[^>]*>[\s\S]*?<\/a>)/gi,
+        (_, fullAnchor, url) => {
+          url = url.trim();
+          // Use a generic iframe for [embed] <a...> as the URL could be anything
+          return `<iframe width="660" height="415" src="${url}" frameborder="0" allowfullscreen style="max-width: 100%; margin-top: 5px;"></iframe><br>${plainLink(url)}`;
+        }
+      );
 
-    // Second pass: Process remaining raw URLs in plain text.
-    const parts = text.split(/(<[^>]+>)/);
-    for (let i = 0; i < parts.length; i++) {
-      if (!parts[i].startsWith("<")) {
-        parts[i] = parts[i].replace(/((https?:\/\/|www\.)[^\s]+)/gi, (match, urlMatch) => {
+      // Process [embed] raw_url -> iframe + plainLink
+      text = text.replace(
+        /\[embed\][\s:]*((https?:\/\/|www\.)[^\s<]+)/gi,
+        (_, urlMatch) => {
           let url = urlMatch.trim().replace(/^\(+/, '').replace(/[\)\.,!?]+$/g, '');
           url = url.startsWith('http') ? url : 'http://' + url;
-          return embedUrl(url);
+          // Use a generic iframe for [embed] raw_url
+          return `<iframe width="660" height="415" src="${url}" frameborder="0" allowfullscreen style="max-width: 100%; margin-top: 5px;"></iframe><br>${plainLink(url)}`;
+        }
+      );
+
+      // Phase 2: DOM-based processing
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = text;
+
+      // Helper to replace a node with HTML string content
+      function replaceNodeWithHtml(node, htmlString) {
+        if (!node.parentNode) return; // Node already removed or detached
+        const fragment = document.createRange().createContextualFragment(htmlString);
+        node.parentNode.replaceChild(fragment, node);
+      }
+
+      // Process <a> tags: style them or replace with video/YouTube embeds if appropriate
+      const anchors = Array.from(tempDiv.querySelectorAll('a')); // Use a static array for safe iteration
+      anchors.forEach(anchor => {
+        if (!anchor.parentNode) return; // Node might have been replaced by a previous operation
+
+        const href = anchor.href;
+        const videoExtensions = /\.(mp4|webm|ogv)$/i;
+        const isVideo = videoExtensions.test(href);
+        const isYouTube = href.includes("youtube.com") || href.includes("youtu.be");
+
+        const anchorStyle = window.getComputedStyle(anchor);
+        const isStyledAsPlainLink = (anchorStyle.color === 'rgb(0, 0, 255)') && anchorStyle.textDecorationLine.includes('underline');
+
+        if ((isVideo || isYouTube) && !isStyledAsPlainLink) {
+          replaceNodeWithHtml(anchor, embedUrl(href));
+        } else if (!isStyledAsPlainLink) {
+          anchor.style.color = "#0000FF";
+          anchor.style.textDecoration = "underline";
+          anchor.target = "_blank";
+          anchor.rel = "noopener noreferrer";
+        }
+      });
+
+      // Process raw URLs in text nodes
+      function processTextNodeForRawUrls(node) {
+        const urlRegex = /((https?:\/\/|www\.)[^\s<]+)/gi;
+        let match;
+        const fragments = [];
+        let lastIndex = 0;
+        const nodeValue = node.nodeValue;
+
+        while ((match = urlRegex.exec(nodeValue)) !== null) {
+          if (match.index > lastIndex) {
+            fragments.push(document.createTextNode(nodeValue.substring(lastIndex, match.index)));
+          }
+          let url = match[0].trim().replace(/^\(+/, '').replace(/[\)\.,!?]+$/g, '');
+          url = url.startsWith('http') ? url : 'http://' + url;
+
+          const embedHtml = embedUrl(url);
+          const embedFragment = document.createRange().createContextualFragment(embedHtml);
+          fragments.push(embedFragment);
+          lastIndex = urlRegex.lastIndex;
+        }
+
+        if (lastIndex < nodeValue.length) {
+          fragments.push(document.createTextNode(nodeValue.substring(lastIndex)));
+        }
+
+        if (fragments.length > 0 && (fragments.length > 1 || fragments[0].nodeType !== Node.TEXT_NODE || fragments[0].nodeValue !== nodeValue)) {
+          const parent = node.parentNode;
+          if (parent) {
+            fragments.forEach(fragment => parent.insertBefore(fragment, node));
+            parent.removeChild(node);
+          }
+        }
+      }
+
+      function walkDOMAndProcessTextNodes(element) {
+        const childNodes = Array.from(element.childNodes);
+        childNodes.forEach(childNode => {
+          if (childNode.nodeType === Node.TEXT_NODE) {
+            if (childNode.parentNode &&
+              childNode.parentNode.nodeName !== 'A' &&
+              childNode.parentNode.nodeName !== 'SCRIPT' &&
+              childNode.parentNode.nodeName !== 'STYLE') {
+              processTextNodeForRawUrls(childNode);
+            }
+          } else if (childNode.nodeType === Node.ELEMENT_NODE) {
+            if (childNode.nodeName !== 'A' &&
+              childNode.nodeName !== 'IFRAME' &&
+              childNode.nodeName !== 'VIDEO' &&
+              childNode.nodeName !== 'SCRIPT' &&
+              childNode.nodeName !== 'STYLE') {
+              walkDOMAndProcessTextNodes(childNode);
+            }
+          }
         });
       }
-    }
-    return parts.join("");
-  } catch (error) {
-    console.error("Error in replaceLinks:", error);
-    return "Please try again";
-  }
-}
 
-  // Expose toggleLinkText to global scope for inline onclick usage
-  window.toggleLinkText = function(event, imgElement, link) {
-    event.preventDefault();
-    const span = imgElement.nextElementSibling;
-    if (span.style.display === 'none' || span.style.display === '') {
-      span.style.display = 'inline';
-      imgElement.src = "static/img/icons/close-eye-grad.png";
-    } else {
-      span.style.display = 'none';
-      imgElement.src = "static/img/icons/open-eye-grad.png";
+      walkDOMAndProcessTextNodes(tempDiv);
+
+      return tempDiv.innerHTML;
+    } catch (error) {
+      console.error("Error in replaceLinks:", error);
+      return text; // Return original/partially processed text on error
     }
-  };
+  }
 
   // Typewriter effect for bot response
   async function typeWriterEffect(text) {
     // Fully process the markdown and embed links
-    const formattedText = await replaceLinks(marked.parse(text));
-  
+    // Ensure marked.parse is called on the raw text before replaceLinks
+    const htmlFromMarkdown = marked.parse(text);
+    const formattedText = replaceLinks(htmlFromMarkdown); // No await needed if replaceLinks is synchronous
+
     // Create a temporary element to get the exact text content
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = formattedText;
@@ -564,12 +638,17 @@ function replaceLinks(text) {
   
     // Type out the plain text at a constant speed
     let i = 0;
+    const TYPING_DELAY_MS = 5; // Increased delay for more stable performance
+    const SCROLL_CHARS_INTERVAL = 3; // Scroll every N characters
+
     function type() {
       if (i < plainText.length) {
         textDiv.textContent += plainText.charAt(i);
         i++;
-        scrollToBottom();
-        setTimeout(type, 5); // constant delay between characters
+        if (i % SCROLL_CHARS_INTERVAL === 0 || i === plainText.length) {
+          scrollToBottom();
+        }
+        setTimeout(type, TYPING_DELAY_MS);
       } else {
         textDiv.innerHTML = formattedText;
         const buttonsContainer = document.createElement('div');
@@ -610,6 +689,7 @@ function replaceLinks(text) {
         });
         buttonsContainer.appendChild(dislikeButton);
         messageDiv.appendChild(buttonsContainer);
+        scrollToBottom(); // Ensure scrolled correctly after buttons are added
       }
     }
     type();
