@@ -402,24 +402,66 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userMessage: message }),
       });
+
+      thinkingDiv.classList.add('hidden'); // Hide thinking indicator as soon as server responds
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          // Display user-requested message for 429 errors from the /qa route
+          addMessage("Too many requests. Please try again later.", 'bot');
+        } else {
+          // Handle other HTTP errors (e.g., 500, 400, 401, etc.)
+          let errorDetailMessage = `Error: ${response.status}`;
+          try {
+            // Attempt to parse error details from JSON response
+            const errorData = await response.json();
+            if (errorData && (errorData.detail || errorData.message)) {
+              errorDetailMessage = errorData.detail || errorData.message;
+            } else if (typeof errorData === 'string') {
+              errorDetailMessage = errorData;
+            } else {
+              // Fallback if JSON is not structured as expected or is not a string
+              errorDetailMessage = await response.text(); // Try to get raw text
+            }
+          } catch (e) {
+            // If response is not JSON, try to get raw text
+            try {
+              errorDetailMessage = await response.text();
+              if (!errorDetailMessage.trim()) { // If text is empty, use statusText
+                errorDetailMessage = response.statusText || 'An unexpected error occurred.';
+              }
+            } catch (e_text) {
+              // If getting text also fails, use statusText
+              errorDetailMessage = response.statusText || 'An unexpected error occurred.';
+            }
+          }
+          addMessage(`Error: ${response.status} - ${errorDetailMessage}`, 'bot');
+        }
+        return; // Stop further processing for non-ok responses
+      }
+
+      // If response.ok is true, proceed to parse JSON
       const data = await response.json();
-      thinkingDiv.classList.add('hidden');
+      
       if (data.response) {
         if (data.response.error) {
+          // Handle application-level errors returned in a 200 OK response
           const errorMsg = data.response.error === 'API request timed out'
             ? 'The API request timed out. Please try again.'
             : 'Error: ' + data.response.error;
           addMessage(errorMsg, 'bot');
         } else {
+          // Successful response with answer
           typeWriterEffect(data.response);
         }
       } else {
-        const errMsg = 'Sorry, something went wrong.';
-        addMessage(errMsg, 'bot');
+        // Response is 200 OK, but the expected 'data.response' structure is missing
+        addMessage('Sorry, the response from the server was not in the expected format.', 'bot');
       }
     } catch (err) {
+      // Catches network errors (e.g., server down) or errors from response.json() if malformed
       thinkingDiv.classList.add('hidden');
-      addMessage('Error: ' + err.message, 'bot');
+      addMessage('Network error or issue processing the request: ' + err.message, 'bot');
     }
   }
 
