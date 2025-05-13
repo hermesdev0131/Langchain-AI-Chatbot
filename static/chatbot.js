@@ -510,6 +510,15 @@
       return `<video controls width="560" height="315" style="max-width: 100%; border-radius: 8px; margin-top: 5px;"><source src="${url}" type="${videoType}">Your browser does not support the video tag.</video>`;
     }
 
+    // Embed direct image links using HTML <img> tag
+    const imageExtensions = /\.(jpeg|jpg|gif|png|webp|svg)$/i;
+    if (imageExtensions.test(url)) {
+      // Extract filename for alt text, or use a generic alt text
+      const filename = url.substring(url.lastIndexOf('/') + 1);
+      const altText = filename ? `Image: ${decodeURIComponent(filename)}` : "Displayed image";
+      return `<img src="${url}" alt="${altText}" style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 5px;">`;
+    }
+
     return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #0000FF; text-decoration: underline;">${url}</a>`;
   }
 
@@ -561,26 +570,43 @@
         node.parentNode.replaceChild(fragment, node);
       }
 
-      // Process <a> tags: style them or replace with video/YouTube embeds if appropriate
+      // Process <a> tags: style them or replace with video/YouTube/image embeds if appropriate
       const anchors = Array.from(tempDiv.querySelectorAll('a')); // Use a static array for safe iteration
       anchors.forEach(anchor => {
         if (!anchor.parentNode) return; // Node might have been replaced by a previous operation
 
         const href = anchor.href;
+        // Define extensions for different media types
+        const imageExtensions = /\.(jpeg|jpg|gif|png|webp|svg)$/i;
         const videoExtensions = /\.(mp4|webm|ogv)$/i;
-        const isVideo = videoExtensions.test(href);
-        const isYouTube = href.includes("youtube.com") || href.includes("youtu.be");
+        
+        const isImageHref = imageExtensions.test(href);
+        const isVideoHref = videoExtensions.test(href);
+        const isYouTubeHref = href.includes("youtube.com") || href.includes("youtu.be");
 
-        const anchorStyle = window.getComputedStyle(anchor);
-        const isStyledAsPlainLink = (anchorStyle.color === 'rgb(0, 0, 255)') && anchorStyle.textDecorationLine.includes('underline');
+        // Check if the anchor's content is already a media element (img, video, iframe)
+        const containsMediaElement = anchor.querySelector('img, video, iframe');
 
-        if ((isVideo || isYouTube) && !isStyledAsPlainLink) {
+        if ((isImageHref || isVideoHref || isYouTubeHref) && !containsMediaElement) {
+          // If href points to a media type and the anchor doesn't already contain such media,
+          // replace the anchor with the direct embed (e.g., <img>, <video>, <iframe>).
           replaceNodeWithHtml(anchor, embedUrl(href));
-        } else if (!isStyledAsPlainLink) {
-          anchor.style.color = "#0000FF";
+        } else {
+          // For all other <a> tags (including those that might already contain media,
+          // or those whose href is not a special media type), ensure they are styled as standard links
+          // if they aren't already.
+          const anchorStyle = window.getComputedStyle(anchor);
+          const isAlreadyStyled = 
+            (anchorStyle.color === 'rgb(0, 0, 255)' || anchorStyle.color === 'blue') && // Check for blue color
+            anchorStyle.textDecorationLine.includes('underline') &&
+            anchor.target === '_blank'; // Check if it opens in a new tab
+
+          if (!isAlreadyStyled) {
+            anchor.style.color = "#0000FF"; // Standard link blue
           anchor.style.textDecoration = "underline";
           anchor.target = "_blank";
           anchor.rel = "noopener noreferrer";
+          }
         }
       });
 
