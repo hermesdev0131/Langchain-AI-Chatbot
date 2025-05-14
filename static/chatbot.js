@@ -603,9 +603,9 @@
 
           if (!isAlreadyStyled) {
             anchor.style.color = "#0000FF"; // Standard link blue
-          anchor.style.textDecoration = "underline";
-          anchor.target = "_blank";
-          anchor.rel = "noopener noreferrer";
+            anchor.style.textDecoration = "underline";
+            anchor.target = "_blank";
+            anchor.rel = "noopener noreferrer";
           }
         }
       });
@@ -778,26 +778,46 @@
   });
 
   uploadInput.addEventListener("change", async (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
-        const response = await fetch(`${apiBaseUrl}/ingest_document`, {
-          method: "POST",
-          body: formData
-        });
-        const data = await response.json();
-        if (data.status === "success") {
-          alert("Document ingested successfully!");
-        } else {
-          alert("Ingestion failed: " + data.detail);
+    const files = event.target.files;
+    if (files.length > 0) {
+      let successCount = 0;
+      let failureCount = 0;
+      const totalFiles = files.length;
+      
+      // Show a preliminary message
+      alert(`Starting ingestion for ${totalFiles} file(s). You will be notified about each file.`);
+
+      for (const file of files) {
+        try {
+          const formData = new FormData();
+          formData.append("file", file);
+          const response = await fetch(`${apiBaseUrl}/ingest_document`, {
+            method: "POST",
+            body: formData
+          });
+          const data = await response.json();
+          if (data.status === "success") {
+            // alert(`File "${file.name}" ingested successfully!`); // Individual success alert
+            successCount++;
+          } else {
+            alert(`Ingestion failed for "${file.name}": ${data.detail || data.message || 'Unknown error'}`);
+            failureCount++;
+          }
+        } catch (error) {
+          console.error(`Error uploading document "${file.name}":`, error);
+          alert(`Error uploading document "${file.name}".`);
+          failureCount++;
         }
-      } catch (error) {
-        console.error("Error uploading document:", error);
-        alert("Error uploading document.");
       }
-      // Clear the input so the same file can be re-selected if needed
+      
+      // Summary alert after all files are processed
+      let summaryMessage = `Ingestion process completed.\nSuccessfully ingested: ${successCount} file(s).\nFailed to ingest: ${failureCount} file(s).`;
+      if (failureCount > 0) {
+        summaryMessage += "\nCheck console for more details on errors.";
+      }
+      alert(summaryMessage);
+
+      // Clear the input so the same files/folder can be re-selected if needed
       uploadInput.value = "";
     }
   });
