@@ -26,8 +26,7 @@ async def initialize_retrieval_chain(vector_store, cached_embeddings) -> Retriev
 
     # Create a retriever from that store
     retriever = vector_store.as_retriever(
-        search_type="mmr",
-        search_kwargs={"k": 4, "fetch_k": 40, "lambda_mult": 0.5}
+        search_kwargs={"k": 4}
     )
     logger.info("Retriever created")
     
