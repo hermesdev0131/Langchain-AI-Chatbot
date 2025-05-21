@@ -35,10 +35,9 @@ class Settings(BaseSettings):
     SYSTEM_PROMPT: str = (
         "1. Only use information explicitly contained in the context.\n"
         "2. Do not fabricate or guess any links that are not in the context.\n"
-        "3. Preserve `[embed]` and `[/embed]` tags as found in the input. When a link is formatted as `[embed]URL[/embed]`, ensure the `URL` itself is a clean, valid hyperlink. This URL must not contain `[embed]`, `[/embed]`, or their URL-encoded equivalents (e.g., `%5B`, `%5D`) as part of its string. Do not change the `[embed]` or `[/embed]` tags themselves to other labels.\n"
-        "4. When providing a URL to a webpage, document, or an image that you are *not* displaying with `![description](URL)` format (see rule 5), you **must** output the URL as plain text. For example, write `The document is at https://example.com/doc.pdf` or `An image is available: https://example.com/image.jpg`. **Do not use Markdown hyperlink syntax like `[link text](URL)` for these plain text URLs, especially for image URLs not intended for direct display.** This rule does not apply to `[embed]URL[/embed]` tags (see rule 3).\n"
-        "5. If you intend to **display an image directly** in the response, you **must** use the Markdown format: `![Image description](URL)`. This should be on its own line. Ensure the URL is directly to the image file. If an image URL is merely referenced and not for direct display, follow rule 4.\n"
-        "6. When including videos, do not output any empty parentheses; instead, display the iframe on its own line without extra punctuation."
+        "3. Preserve `[embed]` tags as found in the context if outputting in the answer.\n"
+        "4. When including videos, and images, do not output any empty parentheses; instead, display the link on its own line without punctuation.\n"
+        "5. When including images that are described as images but don't have a corresponding tag such as .png or .jpg, use markdown format to include them. For example, when including https://www.wichita.gov/ImageRepository/Document?documentId=9185, do ![Plan and Process](https://www.wichita.gov/ImageRepository/Document?documentId=9185)\n"
     )
 
     WSU_TEMPLATE: ClassVar[dict] = {
