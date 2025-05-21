@@ -2,6 +2,7 @@
   // Constants and state variables
   const MAX_RECORDING_TIME = 10000; // 10 seconds
   const COOLDOWN_TIME = 5000; // 5 seconds cooldown
+  const NEWLINE_PLACEHOLDER = "__NEWLINE__"; // Defined in IIFE scope
   let isRecording = false;
   let isFirstOpen = true;
   let mediaRecorder, mediaStream;
@@ -19,6 +20,18 @@
   const uploadBtn = document.getElementById("uploadDocumentButton");
   const uploadInput = document.getElementById("uploadFileInput");
 
+
+  // Helper function to scroll chat body to the bottom conditionally
+  // Moved to IIFE scope to be accessible by both addMessage and sendMessage
+  function scrollToBottom(force = false) {
+    const scrollThreshold = 100; // Pixels from bottom to consider "at bottom"
+    // Check if chatBody is scrolled to the bottom or very close to it
+    const isAtBottom = chatBody.scrollHeight - chatBody.scrollTop - chatBody.clientHeight < scrollThreshold;
+
+    if (force || isAtBottom) {
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+  }
 
   // Toggle chat popup
   function toggleChat() {
@@ -239,7 +252,6 @@
 
       faqContainer.appendChild(faqQuestionsContainer);
       chatBody.appendChild(faqContainer);
-      scrollToBottom();
 
       // Initialize language dropdown if using Select2
       if (window.$ && typeof $('#faq-language').select2 === 'function') {
@@ -393,97 +405,110 @@
   async function sendMessage() {
     const message = chatInput.value.trim();
     if (!message) return;
-    addMessage(message, 'user');
+    addMessage(message, 'user'); // This will call scrollToBottom(true)
     chatInput.value = '';
     thinkingDiv.classList.remove('hidden');
-    try {
-      const response = await fetch(`${apiBaseUrl}/qa`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userMessage: message }),
-      });
+    const response = await fetch(`${apiBaseUrl}/qa/stream`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream'
+      },
+      body: JSON.stringify({ userMessage: message }),
+    });
 
-      thinkingDiv.classList.add('hidden'); // Hide thinking indicator as soon as server responds
+    // 1️⃣ Get a byte‑stream reader
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
 
-      if (!response.ok) {
-        if (response.status === 429) {
-          // Display user-requested message for 429 errors from the /qa route
-          addMessage("Too many requests. Please try again later.", 'bot');
-        } else {
-          // Handle other HTTP errors (e.g., 500, 400, 401, etc.)
-          let errorDetailMessage = `Error: ${response.status}`;
-          try {
-            // Attempt to parse error details from JSON response
-            const errorData = await response.json();
-            if (errorData && (errorData.detail || errorData.message)) {
-              errorDetailMessage = errorData.detail || errorData.message;
-            } else if (typeof errorData === 'string') {
-              errorDetailMessage = errorData;
-            } else {
-              // Fallback if JSON is not structured as expected or is not a string
-              errorDetailMessage = await response.text(); // Try to get raw text
-            }
-          } catch (e) {
-            // If response is not JSON, try to get raw text
-            try {
-              errorDetailMessage = await response.text();
-              if (!errorDetailMessage.trim()) { // If text is empty, use statusText
-                errorDetailMessage = response.statusText || 'An unexpected error occurred.';
-              }
-            } catch (e_text) {
-              // If getting text also fails, use statusText
-              errorDetailMessage = response.statusText || 'An unexpected error occurred.';
-            }
-          }
-          addMessage(`Error: ${response.status} - ${errorDetailMessage}`, 'bot');
-        }
-        return; // Stop further processing for non-ok responses
+    // 2️⃣ Create the bot bubble once, keep a reference
+    const botDiv = addMessage('', 'bot'); // This will call scrollToBottom(true)
+    console.log("sendMessage: Bot message div created for streaming.");
+    const botTextDiv = botDiv.children[1]; // Get the text part of the bot message
+
+    let buffer = '';
+    console.log("sendMessage: Starting to read stream.");
+    // NEWLINE_PLACEHOLDER is used from the IIFE scope
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) {
+        console.log("sendMessage: Stream finished.");
+        break;
       }
 
-      // If response.ok is true, proceed to parse JSON
-      const data = await response.json();
-      
-      if (data.response) {
-        if (data.response.error) {
-          // Handle application-level errors returned in a 200 OK response
-          const errorMsg = data.response.error === 'API request timed out'
-            ? 'The API request timed out. Please try again.'
-            : 'Error: ' + data.response.error;
-          addMessage(errorMsg, 'bot');
-        } else {
-          // Successful response with answer
-          typeWriterEffect(data.response);
+      buffer += decoder.decode(value, { stream: true });
+
+      const chunks = buffer.split("\n\n");
+      buffer = chunks.pop(); 
+      for (const chunk of chunks) {
+        if (!chunk.startsWith('data: ')) continue;
+        let token = chunk.slice(6); 
+        
+        // console.log("sendMessage: Client received raw token from SSE:", JSON.stringify(token)); 
+
+        if (token === 'end-of-stream') {
+          console.log("sendMessage: Received end-of-stream token.");
+          continue; 
         }
-      } else {
-        // Response is 200 OK, but the expected 'data.response' structure is missing
-        addMessage('Sorry, the response from the server was not in the expected format.', 'bot');
+
+        // Convert placeholder back to newline
+        if (token === NEWLINE_PLACEHOLDER) {
+          token = "\n";
+        }
+        
+        // console.log("sendMessage: Client processed token for textContent:", JSON.stringify(token));
+        botTextDiv.textContent += token;
+        scrollToBottom(); // Conditional scroll as new content streams in
       }
-    } catch (err) {
-      // Catches network errors (e.g., server down) or errors from response.json() if malformed
-      thinkingDiv.classList.add('hidden');
-      addMessage('Network error or issue processing the request: ' + err.message, 'bot');
     }
-  }
 
-  // Scroll chat to bottom
-  function scrollToBottom() {
-    chatBody.scrollTop = chatBody.scrollHeight;
+    // After streaming is complete, parse markdown and replace links
+    if (botTextDiv.textContent) {
+      try {
+        // Ensure marked is available (it's used in replaceLinks, so should be)
+        const rawText = botTextDiv.textContent;
+        console.log("sendMessage: Accumulated rawText for parsing:", JSON.stringify(rawText));
+        const htmlContent = marked.parse(rawText);
+        // console.log("sendMessage: htmlContent after marked.parse:", htmlContent); // Can be verbose
+        botTextDiv.innerHTML = replaceLinks(htmlContent);
+        console.log("sendMessage: Bot message content updated with parsed markdown and replaced links.");
+      } catch (e) {
+        console.error("sendMessage: Error parsing markdown or replacing links for bot message:", e);
+        // Fallback: keep as textContent on error to prevent breaking the display
+      }
+    }
+    scrollToBottom(); // Conditional scroll after all processing is done
+
+
+    thinkingDiv.classList.add('hidden');
+    console.log("sendMessage: Thinking indicator hidden.");
   }
 
   // Add a message to the chat
   function addMessage(content, sender) {
+    console.log(`addMessage: Adding message from ${sender}. Content: "${content}"`);
     const messageDiv = document.createElement('div');
     messageDiv.className = `chatbot__message chatbot__message--${sender}`;
     const labelDiv = document.createElement('div');
     labelDiv.className = 'chatbot__label';
     labelDiv.textContent = sender === 'user' ? 'You' : window.CHATBOT_NAME || 'Bot'; // Use CHATBOT_NAME for bot
     const textDiv = document.createElement('div');
-    // For bot messages, parse markdown then replace links. For user messages, display as is (or sanitize).
-    textDiv.innerHTML = sender === "bot" ? replaceLinks(marked.parse(content)) : content;
+
+    if (sender === "user") {
+      textDiv.textContent = content; // User messages are plain text
+    } else {
+      // For bot messages, initially set textContent.
+      // Markdown parsing and link replacement will happen after streaming in sendMessage.
+      textDiv.textContent = content; 
+    }
+    // The original line was:
+    // textDiv.innerHTML = sender === "bot" ? replaceLinks(marked.parse(content)) : content;
     messageDiv.appendChild(labelDiv);
     messageDiv.appendChild(textDiv);
     chatBody.appendChild(messageDiv);
-    scrollToBottom();
+    scrollToBottom(true); // Force scroll when any new message is added
+    return messageDiv;
   }
 
   // Helper: transform a YouTube URL into its embed form.
@@ -673,94 +698,6 @@
       console.error("Error in replaceLinks:", error);
       return text; // Return original/partially processed text on error
     }
-  }
-
-  // Typewriter effect for bot response
-  async function typeWriterEffect(text) {
-    // Fully process the markdown and embed links
-    // Ensure marked.parse is called on the raw text before replaceLinks
-    const htmlFromMarkdown = marked.parse(text);
-    const formattedText = replaceLinks(htmlFromMarkdown); // No await needed if replaceLinks is synchronous
-
-    // Create a temporary element to get the exact text content
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = formattedText;
-    const plainText = tempDiv.textContent || tempDiv.innerText || "";
-  
-    // Create the message container
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'chatbot__message chatbot__message--bot';
-    
-    const labelDiv = document.createElement('div');
-    labelDiv.className = 'chatbot__label';
-    labelDiv.textContent = window.CHATBOT_NAME;
-    
-    const textDiv = document.createElement('div');
-    textDiv.className = 'chatbot__message';
-    textDiv.innerHTML = ""; // Start empty
-    
-    messageDiv.appendChild(labelDiv);
-    messageDiv.appendChild(textDiv);
-    chatBody.appendChild(messageDiv);
-    scrollToBottom();
-  
-    // Type out the plain text at a constant speed
-    let i = 0;
-    const TYPING_DELAY_MS = 5; // Increased delay for more stable performance
-    const SCROLL_CHARS_INTERVAL = 3; // Scroll every N characters
-
-    function type() {
-      if (i < plainText.length) {
-        textDiv.textContent += plainText.charAt(i);
-        i++;
-        if (i % SCROLL_CHARS_INTERVAL === 0 || i === plainText.length) {
-          scrollToBottom();
-        }
-        setTimeout(type, TYPING_DELAY_MS);
-      } else {
-        textDiv.innerHTML = formattedText;
-        const buttonsContainer = document.createElement('div');
-        buttonsContainer.className = 'chatbot__buttons';
-        const copyButton = document.createElement('button');
-        copyButton.className = 'btn-copy';
-        copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-        copyButton.addEventListener('click', () => {
-          navigator.clipboard.writeText(text);
-          copyButton.classList.add('btn-clicked');
-          setTimeout(() => {
-            copyButton.classList.remove('btn-clicked');
-          }, 1000); // Change back to original color after 1 second
-        });
-        buttonsContainer.appendChild(copyButton);
-
-        const likeButton = document.createElement('button');
-        likeButton.className = 'btn-like';
-        likeButton.innerHTML = '<i class="fas fa-thumbs-up"></i>';
-        likeButton.addEventListener('click', () => {
-          // TODO: Implement like functionality
-          likeButton.classList.add('btn-clicked');
-          setTimeout(() => {
-            likeButton.classList.remove('btn-clicked');
-          }, 1000); // Change back to original color after 1 second
-        });
-        buttonsContainer.appendChild(likeButton);
-
-        const dislikeButton = document.createElement('button');
-        dislikeButton.className = 'btn-dislike';
-        dislikeButton.innerHTML = '<i class="fas fa-thumbs-down"></i>';
-        dislikeButton.addEventListener('click', () => {
-          // TODO: Implement like functionality;
-          dislikeButton.classList.add('btn-clicked');
-          setTimeout(() => {
-            dislikeButton.classList.remove('btn-clicked');
-          }, 1000); // Change back to original color after 1 second
-        });
-        buttonsContainer.appendChild(dislikeButton);
-        messageDiv.appendChild(buttonsContainer);
-        scrollToBottom(); // Ensure scrolled correctly after buttons are added
-      }
-    }
-    type();
   }
   
   // Global click listener to fade out chat popup when clicking outside

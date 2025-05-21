@@ -46,24 +46,25 @@ class AzureProvider(BaseProvider):
 
     async def answer_query(self, query: str) -> dict:
         return await answer(query, self.retrieval_chain)
-
+    
     async def get_faqs(self) -> list:
         current_time = time.time()
         # Check if the cache exists and is still valid.
         if self._cached_faqs is not None and (current_time - self._cache_timestamp) < self._cache_ttl:
-            logger.info("Using cached FAQs")
+            logger.debug("Using cached FAQs")
             return self._cached_faqs
 
-        logger.info("Retrieving FAQs from database")
+        logger.debug("Retrieving FAQs from database")
         cursor = self.faq_collection.find({})
-        faqs = await cursor.to_list(length=1000)
+        faqs = await cursor.to_list(length=1000) # Adjust length as needed
         serialized_faqs = [serialize_document(faq) for faq in faqs]
 
-        # Fix: Use "subheadings" from DB and remap it to "subheading"
+        # Process documents: extract heading and subheadings.
+        # The database stores "subheadings" (plural), client expects "subheading" (singular).
         faq_list = [
             {
                 "heading": item.get("heading"),
-                "subheading": item.get("subheadings", [])
+                "subheading": item.get("subheadings", []) # Remap "subheadings" to "subheading"
             }
             for doc in serialized_faqs
             for item in doc.get("faqs", [])
@@ -78,6 +79,7 @@ class AzureProvider(BaseProvider):
         """
         Translates FAQs to the target language using the translation chain.
         If target language is English, returns cached FAQs.
+        Leverages asyncio.gather for concurrent translation of heading and subheadings.
         """
         faq_texts = await self.get_faqs()  # This now uses caching with TTL
         if target_lang.lower() == 'en':
@@ -117,6 +119,8 @@ class AzureProvider(BaseProvider):
 
     async def search_data(self, query: str, limit: int = 100, radius: float = 0.8) -> dict:
         # TODO: Implement data analytics search functionality for AzureProvider.
+        # This method should ideally query a vector store or search index
+        # containing user queries or other relevant data for analytics.
         raise NotImplementedError("search_data is not implemented for AzureProvider.")
 
     async def delete_document(self, id: str) -> dict:

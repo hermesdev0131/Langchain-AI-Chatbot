@@ -1,11 +1,11 @@
 import os
 import uvicorn
 import logging
-import time # Added import
+import time
 from fastapi import FastAPI, Request, Response, APIRouter, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse, JSONResponse # Added JSONResponse
+from fastapi.responses import RedirectResponse, JSONResponse
 from contextlib import asynccontextmanager
 from app import *
 from app.config import settings
@@ -33,7 +33,6 @@ async def lifespan(app: FastAPI):
 
     logger.info("Chains stored in app state.")
     yield
-    logger.info("Shutdown: cleaning up resources...")
 
 app = FastAPI(lifespan=lifespan)
 
