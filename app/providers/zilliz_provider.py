@@ -8,10 +8,9 @@ import pandas as pd
 import time
 from fastapi import UploadFile
 from openai import OpenAI
+from langchain_core.messages import AIMessageChunk
 from langchain.docstore.document import Document
 from app.chains.retrieval_chain_zilliz import answer_and_store as answer
-from langchain_core.messages import AIMessageChunk
-
 logger = logging.getLogger(__name__)
 
 class ZillizProvider(BaseProvider):

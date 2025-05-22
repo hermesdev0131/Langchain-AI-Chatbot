@@ -8,6 +8,8 @@ import asyncio
 from fastapi import UploadFile
 from openai import OpenAI
 import time
+from langchain_core.messages import AIMessageChunk
+from langchain.docstore.document import Document
 from app.chains.retrieval_chain_azure import answer_query as answer
 
 logger = logging.getLogger(__name__)
@@ -46,6 +48,52 @@ class AzureProvider(BaseProvider):
 
     async def answer_query(self, query: str) -> dict:
         return await answer(query, self.retrieval_chain)
+    
+    async def answer_query_stream(self, query: str):
+        """Yield tokens from the LLM as they are produced by LangChain using LCEL."""
+        
+        logger.debug(f"answer_query_stream (LCEL): Initialized for query: '{query}'")
+
+        token_count = 0
+        full_response_for_analytics = [] 
+
+        try:
+            # The LCEL chain expects the query string directly as input.
+            async for chunk in self.retrieval_chain.chain.astream(query):
+                # logger.info(f"answer_query_stream (LCEL): RAW chunk received: {chunk!r}") # Can be very verbose
+
+                actual_token = ""
+                if isinstance(chunk, AIMessageChunk):
+                    actual_token = chunk.content
+                elif isinstance(chunk, str): # Should ideally not happen if LLM is the last streaming component
+                    actual_token = chunk
+                    logger.warning(f"answer_query_stream (LCEL): Received a direct string chunk: '{actual_token}'")
+                elif chunk: # If chunk is not empty but not recognized (e.g. a dict from a misconfigured chain)
+                    logger.warning(f"answer_query_stream (LCEL): Received chunk of unexpected type or structure: {type(chunk)} - {chunk!r}")
+                    # Avoid yielding raw dicts/objects to the client if they are not string content
+                
+                if actual_token: # Only yield if we have actual string content
+                    # logger.info(f"answer_query_stream (LCEL): Yielding processed token: '{actual_token}'") # Verbose
+                    token_count += 1
+                    full_response_for_analytics.append(actual_token)
+                    yield actual_token
+                # else:
+                    # logger.debug(f"answer_query_stream (LCEL): Empty actual_token from chunk: {chunk!r}")
+
+
+        except Exception as e:
+            logger.error(f"answer_query_stream (LCEL): Error during streaming for query '{query}': {e}", exc_info=True)
+            yield f"Error: An error occurred while streaming the response." 
+        
+        logger.debug(f"answer_query_stream (LCEL): Finished yielding tokens. Total tokens: {token_count} for query: '{query}'")
+
+        # # Analytics insert (non‑blocking background task)
+        # doc = Document(page_content=query, metadata={"timestamp": int(time.time())})
+        # asyncio.create_task(
+        #     asyncio.to_thread(self.retrieval_chain.user_queries_vectorstore.add_documents, [doc])
+        # )
+        # logger.debug(f"answer_query_stream (LCEL): Analytics task created for query: '{query}'")
+
     
     async def get_faqs(self) -> list:
         current_time = time.time()
