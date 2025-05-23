@@ -5,8 +5,7 @@
   const NEWLINE_PLACEHOLDER = "__NEWLINE__"; // Defined in IIFE scope
   let isRecording = false;
   let isFirstOpen = true;
-  let mediaRecorder, mediaStream;
-  let audioChunks = [];
+  let mediaStream;
 
   // Cache DOM elements
   const chatPopup = document.getElementById('chatPopup');
@@ -24,7 +23,7 @@
   // Helper function to scroll chat body to the bottom conditionally
   // Moved to IIFE scope to be accessible by both addMessage and sendMessage
   function scrollToBottom(force = false) {
-    const scrollThreshold = 100; // Pixels from bottom to consider "at bottom"
+    const scrollThreshold = 50; // Pixels from bottom to consider "at bottom"
     // Check if chatBody is scrolled to the bottom or very close to it
     const isAtBottom = chatBody.scrollHeight - chatBody.scrollTop - chatBody.clientHeight < scrollThreshold;
 
@@ -421,65 +420,99 @@
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
 
-    // 2️⃣ Create the bot bubble once, keep a reference
-    const botDiv = addMessage('', 'bot'); // This will call scrollToBottom(true)
+    const botDiv = addMessage('', 'bot'); 
     console.log("sendMessage: Bot message div created for streaming.");
-    const botTextDiv = botDiv.children[1]; // Get the text part of the bot message
+    const botTextDiv = botDiv.children[1]; 
+    botTextDiv.innerHTML = ''; // Clear initial content
 
-    let buffer = '';
-    console.log("sendMessage: Starting to read stream.");
-    // NEWLINE_PLACEHOLDER is used from the IIFE scope
+    let sseBuffer = ''; 
+    let fullTextMessageContent = ''; // Accumulates all text for final markdown parsing
+    
+    let tokenBufferForFrame = ""; // Buffer for tokens to be rendered in the next animation frame
+    let isUpdateScheduled = false;
+
+    function appendTokenWithFadeIn(tokenText) {
+      if (!tokenText) return;
+      const tokenSpan = document.createElement('span');
+      tokenSpan.textContent = tokenText;
+      tokenSpan.classList.add('fade-in-token'); 
+      botTextDiv.appendChild(tokenSpan);
+    }
+
+    function appendLineBreak() {
+      botTextDiv.appendChild(document.createElement('br'));
+    }
+
+    function renderBufferedTokens() {
+      if (tokenBufferForFrame) {
+        appendTokenWithFadeIn(tokenBufferForFrame);
+        tokenBufferForFrame = ""; // Clear buffer after rendering
+      }
+      isUpdateScheduled = false;
+      scrollToBottom(); // Scroll after DOM update
+    }
+
+    console.log("sendMessage: Starting to read stream for token-by-token display with rAF batching.");
 
     while (true) {
       const { value, done } = await reader.read();
       if (done) {
+        // Ensure any remaining buffered tokens are rendered before finishing
+        if (tokenBufferForFrame) {
+          renderBufferedTokens(); // This will also clear isUpdateScheduled
+        }
         console.log("sendMessage: Stream finished.");
         break;
       }
 
-      buffer += decoder.decode(value, { stream: true });
+      sseBuffer += decoder.decode(value, { stream: true });
 
-      const chunks = buffer.split("\n\n");
-      buffer = chunks.pop(); 
-      for (const chunk of chunks) {
-        if (!chunk.startsWith('data: ')) continue;
-        let token = chunk.slice(6); 
+      const sseMessages = sseBuffer.split("\n\n");
+      sseBuffer = sseMessages.pop(); 
+
+      for (const sseMessage of sseMessages) {
+        if (!sseMessage.startsWith('data: ')) continue;
+        let token = sseMessage.slice(6); 
         
-        // console.log("sendMessage: Client received raw token from SSE:", JSON.stringify(token)); 
-
         if (token === 'end-of-stream') {
           console.log("sendMessage: Received end-of-stream token.");
           continue; 
         }
+        
+        fullTextMessageContent += (token === NEWLINE_PLACEHOLDER) ? "\n" : token; // Accumulate for final markdown
 
-        // Convert placeholder back to newline
         if (token === NEWLINE_PLACEHOLDER) {
-          token = "\n";
+          // If there's pending text, render it before the line break
+          if (tokenBufferForFrame) {
+            appendTokenWithFadeIn(tokenBufferForFrame);
+            tokenBufferForFrame = "";
+          }
+          appendLineBreak();
+        } else {
+          tokenBufferForFrame += token;
         }
         
-        // console.log("sendMessage: Client processed token for textContent:", JSON.stringify(token));
-        botTextDiv.textContent += token;
-        scrollToBottom(); // Conditional scroll as new content streams in
+        if (!isUpdateScheduled) {
+          isUpdateScheduled = true;
+          requestAnimationFrame(renderBufferedTokens);
+        }
       }
     }
 
-    // After streaming is complete, parse markdown and replace links
-    if (botTextDiv.textContent) {
+    // After streaming, parse the full content as markdown
+    if (fullTextMessageContent) {
       try {
-        // Ensure marked is available (it's used in replaceLinks, so should be)
-        const rawText = botTextDiv.textContent;
-        console.log("sendMessage: Accumulated rawText for parsing:", JSON.stringify(rawText));
-        const htmlContent = marked.parse(rawText);
-        // console.log("sendMessage: htmlContent after marked.parse:", htmlContent); // Can be verbose
-        botTextDiv.innerHTML = replaceLinks(htmlContent);
+        console.log("sendMessage: Accumulated full plain text for parsing:", JSON.stringify(fullTextMessageContent));
+        const htmlContent = marked.parse(fullTextMessageContent);
+        botTextDiv.innerHTML = replaceLinks(htmlContent); 
         console.log("sendMessage: Bot message content updated with parsed markdown and replaced links.");
       } catch (e) {
         console.error("sendMessage: Error parsing markdown or replacing links for bot message:", e);
-        // Fallback: keep as textContent on error to prevent breaking the display
+        // Fallback: reconstruct text content if markdown parsing fails, though less ideal
+        botTextDiv.textContent = fullTextMessageContent; 
       }
     }
-    scrollToBottom(); // Conditional scroll after all processing is done
-
+    scrollToBottom(true); 
 
     thinkingDiv.classList.add('hidden');
     console.log("sendMessage: Thinking indicator hidden.");
