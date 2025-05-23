@@ -86,14 +86,16 @@ img {
   /* Space between icon and text */
 }
 
-.fade-in-token {
-  /* The animation starts from opacity 0, which matches the JS-set initial state */
-  animation: fadeInTokenAnimation 1s ease-out forwards;
+.fade-in-markdown {
+  opacity: 0;
+  animation: fadeInMarkdown 1s ease-out forwards;
+  display: inline;               /* <span> default, but safe */
+  margin: 0;                     /* kill p default margins if any slip in */
 }
 
-@keyframes fadeInTokenAnimation {
+@keyframes fadeInMarkdown {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 
 .chatbot__button {
@@ -468,6 +470,10 @@ img {
   border-radius: 10px 10px 10px 0;
 }
 
+.chatbot__message--bot.pending-stream {
+  min-width: 50%;
+  /* Provides a stable width until the final content is rendered */
+}
 
 /* Labels above each message */
 .chatbot__label {

@@ -23,14 +23,16 @@
   // Helper function to scroll chat body to the bottom conditionally
   // Moved to IIFE scope to be accessible by both addMessage and sendMessage
   function scrollToBottom(force = false) {
-    const scrollThreshold = 50; // Pixels from bottom to consider "at bottom"
-    // Check if chatBody is scrolled to the bottom or very close to it
-    const isAtBottom = chatBody.scrollHeight - chatBody.scrollTop - chatBody.clientHeight < scrollThreshold;
+    const THRESHOLD = 500;
+    const atBottom =
+      chatBody.scrollHeight - chatBody.scrollTop - chatBody.clientHeight < THRESHOLD;
+    if (!force && !atBottom) return;
 
-    if (force || isAtBottom) {
-      chatBody.scrollTop = chatBody.scrollHeight;
-    }
+    chatBody.style.scrollBehavior = 'smooth';         // turn it on
+    chatBody.scrollTop = chatBody.scrollHeight;       // perform the scroll
+    requestAnimationFrame(() => (chatBody.style.scrollBehavior = 'auto'));
   }
+
 
   // Toggle chat popup
   function toggleChat() {
@@ -78,7 +80,6 @@
       });
       recorder.startRecording();
       isRecording = true;
-      console.log("Recording started...");
 
       // Auto-stop after the max time limit
       setTimeout(() => {
@@ -102,7 +103,6 @@
         stopMicrophoneStream();
       });
       isRecording = false;
-      console.log("Recording stopped.");
     }
   }
 
@@ -416,52 +416,65 @@
       body: JSON.stringify({ userMessage: message }),
     });
 
-    // 1️⃣ Get a byte‑stream reader
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
 
     const botDiv = addMessage('', 'bot'); 
-    console.log("sendMessage: Bot message div created for streaming.");
+    botDiv.classList.add('pending-stream');
     const botTextDiv = botDiv.children[1]; 
     botTextDiv.innerHTML = ''; // Clear initial content
 
     let sseBuffer = ''; 
     let fullTextMessageContent = ''; // Accumulates all text for final markdown parsing
-    
-    let tokenBufferForFrame = ""; // Buffer for tokens to be rendered in the next animation frame
-    let isUpdateScheduled = false;
+    let chunkBuffer = "";
+    const TOKENS_PER_CHUNK = 40;     // tweak to taste
+    let tokenCount = 0;              // reset every flush
+    let currentP = null;
 
-    function appendTokenWithFadeIn(tokenText) {
-      if (!tokenText) return;
-      const tokenSpan = document.createElement('span');
-      tokenSpan.textContent = tokenText;
-      tokenSpan.classList.add('fade-in-token'); 
-      botTextDiv.appendChild(tokenSpan);
-    }
+    function renderMarkdownChunk(isHardBreak = false) {
+      if (!chunkBuffer) return;            // nothing to flush
 
-    function appendLineBreak() {
-      botTextDiv.appendChild(document.createElement('br'));
-    }
+      if (isHardBreak) {
+      // newline placeholder → finish the paragraph, start a new block
+      const html = replaceLinks(marked.parse(chunkBuffer));      // full parse
+      const block = document.createElement("div");
+      block.innerHTML = html;
+      block.classList.add("fade-in-markdown");
+      block.dataset.justAdded = "true";
+      botTextDiv.appendChild(block);
 
-    function renderBufferedTokens() {
-      if (tokenBufferForFrame) {
-        appendTokenWithFadeIn(tokenBufferForFrame);
-        tokenBufferForFrame = ""; // Clear buffer after rendering
+      currentP = null;             // next text starts a fresh <p>
+      } 
+      else {
+        // mid‑paragraph flush (40 tokens) → inline parse
+        if (!currentP) {
+          currentP = document.createElement("p");
+          botTextDiv.appendChild(currentP);
+        }
+
+        const html = replaceLinks(marked.parseInline(chunkBuffer));
+        const span = document.createElement("span");
+        span.innerHTML = html;
+        span.classList.add("fade-in-markdown");
+        span.dataset.justAdded = "true";
+        currentP.appendChild(span);
       }
-      isUpdateScheduled = false;
-      scrollToBottom(); // Scroll after DOM update
-    }
 
-    console.log("sendMessage: Starting to read stream for token-by-token display with rAF batching.");
+        chunkBuffer = "";                    // reset buffer
+        scrollToBottom();                    // keep viewport pinned
+    }
 
     while (true) {
       const { value, done } = await reader.read();
       if (done) {
         // Ensure any remaining buffered tokens are rendered before finishing
-        if (tokenBufferForFrame) {
-          renderBufferedTokens(); // This will also clear isUpdateScheduled
+        renderMarkdownChunk();
+        if (botDiv.classList.contains('pending-stream')) {
+          botDiv.classList.remove('pending-stream');
         }
-        console.log("sendMessage: Stream finished.");
+        // Final parse check
+        const finalHTML = replaceLinks(marked.parse(fullTextMessageContent));
+        botTextDiv.innerHTML = finalHTML;
         break;
       }
 
@@ -475,52 +488,34 @@
         let token = sseMessage.slice(6); 
         
         if (token === 'end-of-stream') {
-          console.log("sendMessage: Received end-of-stream token.");
           continue; 
         }
         
-        fullTextMessageContent += (token === NEWLINE_PLACEHOLDER) ? "\n" : token; // Accumulate for final markdown
-
-        if (token === NEWLINE_PLACEHOLDER) {
-          // If there's pending text, render it before the line break
-          if (tokenBufferForFrame) {
-            appendTokenWithFadeIn(tokenBufferForFrame);
-            tokenBufferForFrame = "";
-          }
-          appendLineBreak();
-        } else {
-          tokenBufferForFrame += token;
-        }
+        fullTextMessageContent += (token === NEWLINE_PLACEHOLDER) ? "\n" : token;
         
-        if (!isUpdateScheduled) {
-          isUpdateScheduled = true;
-          requestAnimationFrame(renderBufferedTokens);
+        if (token === NEWLINE_PLACEHOLDER) {
+          renderMarkdownChunk(true);             // flush & animate this block
+          tokenCount = 0
+          } 
+        else {
+          chunkBuffer += token;              // keep accumulating
+          ++tokenCount
+
+          if (tokenCount >= TOKENS_PER_CHUNK) {
+            renderMarkdownChunk(false);
+            tokenCount = 0;                     // start a fresh buffer
+          }
         }
       }
     }
 
-    // After streaming, parse the full content as markdown
-    if (fullTextMessageContent) {
-      try {
-        console.log("sendMessage: Accumulated full plain text for parsing:", JSON.stringify(fullTextMessageContent));
-        const htmlContent = marked.parse(fullTextMessageContent);
-        botTextDiv.innerHTML = replaceLinks(htmlContent); 
-        console.log("sendMessage: Bot message content updated with parsed markdown and replaced links.");
-      } catch (e) {
-        console.error("sendMessage: Error parsing markdown or replacing links for bot message:", e);
-        // Fallback: reconstruct text content if markdown parsing fails, though less ideal
-        botTextDiv.textContent = fullTextMessageContent; 
-      }
-    }
     scrollToBottom(true); 
 
     thinkingDiv.classList.add('hidden');
-    console.log("sendMessage: Thinking indicator hidden.");
   }
 
   // Add a message to the chat
   function addMessage(content, sender) {
-    console.log(`addMessage: Adding message from ${sender}. Content: "${content}"`);
     const messageDiv = document.createElement('div');
     messageDiv.className = `chatbot__message chatbot__message--${sender}`;
     const labelDiv = document.createElement('div');
@@ -535,8 +530,6 @@
       // Markdown parsing and link replacement will happen after streaming in sendMessage.
       textDiv.textContent = content; 
     }
-    // The original line was:
-    // textDiv.innerHTML = sender === "bot" ? replaceLinks(marked.parse(content)) : content;
     messageDiv.appendChild(labelDiv);
     messageDiv.appendChild(textDiv);
     chatBody.appendChild(messageDiv);
@@ -588,7 +581,6 @@
   // Main function: process both markdown-style links and raw URLs.
   function replaceLinks(text) {
     if (!text || typeof text !== 'string' || text.trim() === "") {
-      console.error("replaceLinks received empty or invalid text.");
       return "Please try again";
     }
     try {
