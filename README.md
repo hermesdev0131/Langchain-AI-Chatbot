@@ -198,7 +198,7 @@ Langchain-AI-Chatbot-Server/
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/BenjaminDanker/Langchain-AI-Chatbot-Server.git
+   git clone https://github.com/hermesdev0131/Langchain-AI-Chatbot.git
    cd Langchain-AI-Chatbot-Server
    ```
 
@@ -492,7 +492,7 @@ Render is used for deploying and hosting parts of the application.
    - Visit [Render Login](https://dashboard.render.com/login) and create an account.
    - Projects -> Create new project (project name: e.g. Chatbot)
    - +New (top right) -> Web Service -> Public Git Repository
-     - For Public Git Repository, input https://github.com/BenjaminDanker/Langchain-AI-Chatbot-Server.git
+     - For Public Git Repository, input https://github.com/hermesdev0131/Langchain-AI-Chatbot.git
      - If you forked the repository and want to host using that repository, use Git Provider after logging in with GitHub
    - Name (e.g. Langchain-AI-Chatbot-Server)
    - Project (e.g. Chatbot / Production)
