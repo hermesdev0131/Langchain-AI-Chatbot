@@ -118,7 +118,7 @@ sequenceDiagram
 The project is organized into several folders to separate concerns. Below is the folder structure:
 
 ```
-Langchain-AI-Chatbot-Server/
+Langchain-AI-Chatbot/
 ├── app/
 │   ├── chains/
 │   │   ├── delete_documents_azure.py
@@ -199,7 +199,7 @@ Langchain-AI-Chatbot-Server/
 
    ```bash
    git clone https://github.com/hermesdev0131/Langchain-AI-Chatbot.git
-   cd Langchain-AI-Chatbot-Server
+   cd Langchain-AI-Chatbot
    ```
 
 2. **Create environment and Install dependencies:**  
@@ -494,7 +494,7 @@ Render is used for deploying and hosting parts of the application.
    - +New (top right) -> Web Service -> Public Git Repository
      - For Public Git Repository, input https://github.com/hermesdev0131/Langchain-AI-Chatbot.git
      - If you forked the repository and want to host using that repository, use Git Provider after logging in with GitHub
-   - Name (e.g. Langchain-AI-Chatbot-Server)
+   - Name (e.g. Langchain-AI-Chatbot)
    - Project (e.g. Chatbot / Production)
    - Language: Python 3
    - Branch (e.g. main)
